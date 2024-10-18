@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "coorperative_rl"
+version = "0.1.0"
+description = "coorperative rl"
+authors = ["Satoshi <6world4trigger@gmail.com>"]
+packages = [{ include = "coorperative_rl"}]
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.7.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "^2.1.2"
+matplotlib = "^3.9.2"
+torch = "^2.5.0"
+tqdm = "^4.66.5"
+mlflow = "^2.17.0"
+pyyaml = "^6.0.2"
+fire = "^0.7.0"
+optuna = "^4.0.0"
+ipykernel = "^6.29.5"
+optuna-dashboard = "^0.16.2"
+
