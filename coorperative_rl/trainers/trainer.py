@@ -1,3 +1,5 @@
+from tqdm import tqdm
+
 from coorperative_rl.agents.qtable_agent import QTableAgent
 from coorperative_rl.envs import Environment
 from coorperative_rl.states import AgentType
@@ -19,7 +21,7 @@ def train_qtable_based_agents(n: int = 4, num_episodes: int = 300, visualize: bo
         env.add_agent(agent)
 
     # TODO: implement the training loop
-    for episode in range(num_episodes):
+    for episode in tqdm(range(num_episodes)):
         env.initialize_for_new_episode(agent_states=None, goal_location=None, allow_overlapping_objects=True)
         is_done = False
         while not is_done:
