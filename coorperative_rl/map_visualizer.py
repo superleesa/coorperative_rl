@@ -15,7 +15,11 @@ class MapVisualizer:
     COLORS = ["purple", "orange", "lime"]
     HAS_KEY_COLORS = ["blue", "red", "green"]
 
-    def __init__(self, env: Environment, plot_pause_seconds: float | int = 0.7) -> None:
+    def __init__(self, env: Environment, plot_pause_seconds: float | int = 0.7, visualize: bool = True) -> None:
+        self.visualize = visualize
+        if not visualize:
+            return
+        
         self.env = env
 
         self.fig = fig
@@ -24,6 +28,8 @@ class MapVisualizer:
         self.plot_pause_seconds = plot_pause_seconds  # Pause to allow visualization of the movement
 
     def update(self) -> None:
+        if not self.visualize:
+            return
         self.ax.clear()
 
         self.ax.set_xlim(0, self.env.grid_size)

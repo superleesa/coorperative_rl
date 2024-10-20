@@ -19,10 +19,11 @@ class Environment:
         key_share_reward: int | float = 100,
         goal_without_key_penalty: int | float = -100,
         time_penalty: int | float = -1,
+        visualize: bool = True,
     ) -> None:
         self.grid_size = grid_size
         self.state = GlobalState(grid_size=grid_size)
-        self.visualizer = MapVisualizer(self)
+        self.visualizer = MapVisualizer(self, visualize=visualize)
 
         self.time_penalty = time_penalty
         self.goal_state_reward = goal_state_reward
