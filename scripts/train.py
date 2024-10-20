@@ -1,6 +1,6 @@
 import fire
 
-from coorperative_rl.trainers.trainer import train_qtable_based_agents
+from coorperative_rl.trainers.qtable_trainers import train_qtable_based_agents
 
 def main() -> None:
     train_qtable_based_agents()
