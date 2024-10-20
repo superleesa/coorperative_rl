@@ -115,3 +115,13 @@ class NullTracker(BaseTracker):
 
     def log_metric(self, key: str, value: float, step: int) -> None:
         pass
+
+
+def select_tracker(tracking: bool, tracker_type: str = "mlflow") -> BaseTracker:
+    if not tracking:
+        return NullTracker()
+    if tracker_type == "mlflow":
+        return MLFlowTracker()
+    if tracker_type == "matplotlib":
+        return MatplotlibPlotTraker()
+    raise ValueError(f"Unknown tracker type: {tracker_type}")
