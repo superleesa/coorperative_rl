@@ -33,3 +33,8 @@ class BaseAgent(ABC):
 
     def __hash__(self) -> int:
         return self.id
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, BaseAgent):
+            return False
+        return hash(self) == hash(other)

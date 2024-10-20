@@ -20,7 +20,7 @@ def train_qtable_based_agents(n: int = 4, num_episodes: int = 300) -> None:
 
     # TODO: implement the training loop
     for episode in range(num_episodes):
-        env.initialize_for_new_episode(agent_states=None, goal_location=None)
+        env.initialize_for_new_episode(agent_states=None, goal_location=None, allow_overlapping_objects=True)
         is_done = False
         while not is_done:
             env.start_new_step()

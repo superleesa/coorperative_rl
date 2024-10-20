@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 from copy import deepcopy
 from typing import TYPE_CHECKING
-from states import GlobalState, AgentState, ObservableState
+from coorperative_rl.states import GlobalState, AgentState, ObservableState
 
+from coorperative_rl.actions import Action
 from coorperative_rl.map_visualizer import MapVisualizer
 
 if TYPE_CHECKING:
     from coorperative_rl.agents.base import BaseAgent
-    from coorperative_rl.actions import Action
 
 
 class Environment:
@@ -19,8 +21,8 @@ class Environment:
         time_penalty: int | float = -1,
     ) -> None:
         self.grid_size = grid_size
-        self.state = GlobalState()
-        self.visualizer = MapVisualizer()
+        self.state = GlobalState(grid_size=grid_size)
+        self.visualizer = MapVisualizer(self)
 
         self.time_penalty = time_penalty
         self.goal_state_reward = goal_state_reward
@@ -32,12 +34,13 @@ class Environment:
         self.action_taken = {}
 
     def add_agent(self, agent: BaseAgent) -> None:
-        self.state.add_agent(agent.state)
+        self.state.add_agent(agent)
 
     def initialize_for_new_episode(
         self,
-        agent_states: dict[BaseAgent, AgentState] | None,
-        goal_location: tuple[int, int] | None,
+        agent_states: dict[BaseAgent, AgentState] | None = None,
+        goal_location: tuple[int, int] | None = None,
+        allow_overlapping_objects: bool = False,
     ) -> None:
         if (
             agent_states is None
@@ -50,9 +53,9 @@ class Environment:
         if agent_states is not None and goal_location is not None:
             self.state.initialize_state_from_values(agent_states, goal_location)
         else:
-            self.state.initialize_state_randomly()
+            self.state.initialize_state_randomly(allow_overlapping_objects=allow_overlapping_objects)
 
-    def get_available_actions(self, agent: AgentState) -> list[Action]:
+    def get_available_actions(self, agent: BaseAgent) -> list[Action]:
         """
         A function to rule out the actions that are not available to the agent,
         based on obserbable state and assumptions
@@ -63,18 +66,18 @@ class Environment:
         actions = []
 
         # assume agents know waiting after the key share is meaningless
-        if not agent.has_full_key:
+        if not observable_state.has_full_key:
             actions.append(Action.WAIT)
 
         x, y = observable_state.agent_location
         # we assume that agents know the grid size and boundaries
         if x > 0:
             actions.append(Action.LEFT)  # left
-        if x < self.n - 1:
+        if x < self.grid_size - 1:
             actions.append(Action.RIGHT)  # right
         if y > 0:
             actions.append(Action.DOWN)  # down
-        if y < self.n - 1:
+        if y < self.grid_size - 1:
             actions.append(Action.UP)  # up
 
         return actions
@@ -125,7 +128,7 @@ class Environment:
 
         for _, other_agent_state in self.state.agent_states.items():
             if (
-                other_agent_state._type != agent_state._type
+                other_agent_state.type != agent_state.type
                 and other_agent_state.location == agent_state.location
             ):
                 return other_agent_state

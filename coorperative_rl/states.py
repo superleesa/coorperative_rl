@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import random
 from enum import Enum
 from typing import TYPE_CHECKING
@@ -18,7 +20,7 @@ class AgentType(Enum):
 class AgentState(BaseModel):
     # TODO: add initializers
     id: int = Field(frozen=True)
-    _type: AgentType = Field(frozen=True, alias="type")
+    type: AgentType = Field(frozen=True)
     location: tuple[int, int]
     has_full_key: bool
 
@@ -38,20 +40,19 @@ class ObservableState(BaseModel):
 class GlobalState:
     def __init__(
         self,
-        goal_location: tuple[int, int],
         grid_size: int,
     ) -> None:
         self.grid_size = grid_size
         self.agents: set[BaseAgent] = set([])
         self.agent_states: dict[BaseAgent, AgentState] = {}
-        self.goal_location: tuple[int, int] = goal_location
+        self.goal_location: tuple[int, int]
 
     def get_closest_opposite_agent(self, agent_state: AgentState) -> AgentState:
         min_distance = float("inf")
         min_distance_agent_id: int | None = None
 
         for other_agent_id, other_agent_state in self.agent_states.items():
-            if other_agent_state._type == agent_state._type:
+            if other_agent_state.type == agent_state.type:
                 continue
 
             euclidan_distance = (
@@ -68,7 +69,7 @@ class GlobalState:
         return self.agent_states[min_distance_agent_id]
 
     def get_observable_state_for_agent(self, agent: BaseAgent) -> ObservableState:
-        agent_state = self.agent_states[agent.id]
+        agent_state = self.agent_states[agent]
         closest_opposite_agent_state = self.get_closest_opposite_agent(agent_state)
         return ObservableState(
             agent_location=agent_state.location,
@@ -109,7 +110,7 @@ class GlobalState:
         for agent in self.agents:
             agent_state = AgentState(
                 id=agent.id,
-                _type=agent.type,
+                type=agent.type,
                 location=selected_locations.pop(),
                 has_full_key=random.random() <= has_full_key_prob
                 if has_full_key_prob is not None

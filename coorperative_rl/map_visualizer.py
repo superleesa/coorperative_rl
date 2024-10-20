@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
@@ -24,8 +26,8 @@ class MapVisualizer:
     def update(self) -> None:
         self.ax.clear()
 
-        self.ax.set_xlim(0, self.n)
-        self.ax.set_ylim(0, self.n)
+        self.ax.set_xlim(0, self.env.grid_size)
+        self.ax.set_ylim(0, self.env.grid_size)
         self.ax.set_xticks(np.arange(0, self.env.grid_size + 1, 1))
         self.ax.set_yticks(np.arange(0, self.env.grid_size + 1, 1))
         self.ax.grid(True)
@@ -33,11 +35,11 @@ class MapVisualizer:
         # draw agents + agent legends
         agent_legends = []
         for agent_state in self.env.state.agent_states.values():
-            agent_icon = agent_state._type.name + str(agent_state.id)
+            agent_icon = agent_state.type.name.lstrip("TYPE_") + str(agent_state.id)
             agent_color = (
-                MapVisualizer.COLORS[agent_state._type.value]
+                MapVisualizer.COLORS[agent_state.type.value]
                 if not agent_state.has_full_key
-                else MapVisualizer.HAS_KEY_COLORS[agent_state._type.value]
+                else MapVisualizer.HAS_KEY_COLORS[agent_state.type.value]
             )
             
             # agent location
@@ -70,7 +72,7 @@ class MapVisualizer:
             ha="center",
             va="center",
             fontsize=16,
-            color="red",
+            color="black",
         )
         goal_legend = plt.Line2D(
             [0],
