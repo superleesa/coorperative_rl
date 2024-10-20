@@ -8,6 +8,7 @@ packages = [{ include = "coorperative_rl"}]
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.0"
 
+mypy = "^1.12.0"
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
@@ -25,3 +26,4 @@ optuna = "^4.0.0"
 ipykernel = "^6.29.5"
 optuna-dashboard = "^0.16.2"
 
+pydantic = "^2.9.2"
