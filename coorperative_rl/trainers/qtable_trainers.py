@@ -20,26 +20,5 @@ def train_qtable_based_agents(n: int = 4, num_episodes: int = 300, visualize: bo
     for agent in agents:
         env.add_agent(agent)
 
-    # TODO: implement the training loop
     for episode in tqdm(range(num_episodes)):
-        env.initialize_for_new_episode(agent_states=None, goal_location=None, allow_overlapping_objects=True)
-        is_done = False
-        while not is_done:
-            env.start_new_step()
-
-            for agent in agents:
-                action = agent.decide_action(
-                    possible_actions=env.get_available_actions(agent),
-                    state=env.state.get_observable_state_for_agent(agent),
-                )
-                env.step_one_agent(agent, action)
-
-            previous_state, current_state, rewards, is_done = env.end_step()
-
-            for agent in agents:
-                agent.update_model(
-                    original_state=previous_state[agent],
-                    moved_state=current_state[agent],
-                    reward=rewards[agent],
-                    action=env.action_taken[agent],
-                )
+        run_episode(agents, env)
