@@ -21,12 +21,14 @@ class QTable:
         self.until_key_share = np.zeros((n, n, n, n, n, n, len(Action)))
         self.after_key_share = np.zeros((n, n, n, n, len(Action)))  # opposite agent location should not matter after key share, so no extra (n, n) dimension
     
-    def get_state_qvals(self, state: ObservableState, actions: list[Action] | Action = []) -> np.ndarray:
+    def get_state_qvals(self, state: ObservableState, actions: list[Action] | Action | None = None) -> np.ndarray:
         """
         Returns Q(S), or Q(S, A) if actions are provided
         """
         if isinstance(actions, Action):
             actions = [actions]
+        elif actions is None:
+            actions = []
         
         x, y = state.agent_location
         goal_x, goal_y = state.goal_location
