@@ -52,6 +52,8 @@ class Environment:
             raise ValueError("not supported (yet)")
 
         if agent_states is not None and goal_location is not None:
+            if allow_overlapping_objects:
+                raise ValueError("overlapping objects are not supported with custom agent states")
             self.state.initialize_state_from_values(agent_states, goal_location)
         else:
             self.state.initialize_state_randomly(allow_overlapping_objects=allow_overlapping_objects)
