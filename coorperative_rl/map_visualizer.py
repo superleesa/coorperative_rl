@@ -17,8 +17,6 @@ class MapVisualizer:
 
     def __init__(self, env: Environment, plot_pause_seconds: float | int = 0.7, visualize: bool = True) -> None:
         self.visualize = visualize
-        if not visualize:
-            return
         
         self.env = env
 
