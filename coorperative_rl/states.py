@@ -4,7 +4,7 @@ import random
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from coorperative_rl.utils import generate_random_location
 
@@ -18,7 +18,6 @@ class AgentType(Enum):
 
 
 class AgentState(BaseModel):
-    # TODO: add initializers
     id: int = Field(frozen=True)
     type: AgentType = Field(frozen=True)
     location: tuple[int, int]
@@ -26,6 +25,12 @@ class AgentState(BaseModel):
 
 
 class ObservableState(BaseModel):
+    """
+    This is the state that agents can observe and handle, 
+    when decicing thier actions / updating thier models
+    """
+    model_config = ConfigDict(frozen=True)  # disable mutation for simplicity
+    
     # we can only use:
     # 1) the agent location itself
     # 2) agent location of the closest opposite type agent (this one from the contract)
