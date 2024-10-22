@@ -9,6 +9,7 @@ from coorperative_rl.actions import Action
 from coorperative_rl.envs import Environment
 from coorperative_rl.agents.base import BaseAgent
 from coorperative_rl.states import ObservableState, AgentState
+from coorperative_rl.metrics import calculate_optimal_time_estimation
 
 from coorperative_rl.utils import (
     generate_grid_location_list,
@@ -131,7 +132,7 @@ def generate_episode_samples(
         generate_random_location(grid_size) for _ in range(num_total_samples)
     ]
     episode_samples = [
-        {"agent_states": agent_states, "goal_location": goal_location}
+        EpisodeSampleParams(agent_states=agent_states, goal_location=goal_location)
         for agent_states, goal_location in zip(
             agent_states_samples, goal_location_samples
         )
@@ -144,7 +145,7 @@ def validate(
     env: Environment,
     tracker: BaseTracker | None,
     validation_index: int | None = None,
-) -> tuple[float, float, float]:
+) -> tuple[float, float, float, float, float]:
     """
     FIXME: maybe we need support more statistics
     This assumes that there is no difference in models between agents with the same type (to reduce number of possible start states).
@@ -159,6 +160,8 @@ def validate(
     average_reward = 0.0
     average_path_length = 0.0
     goal_reached_percentage = 0.0
+    less_than_15_steps_percentage = 0.0
+    average_excess_path_length = 0.0
     for i, episode_sample in tqdm(enumerate(episode_samples)):
         sars_collected, has_reached_goal = run_episode(
             agents,
@@ -174,6 +177,9 @@ def validate(
         episode_path_length = len(sars_collected)
         average_path_length += episode_path_length / len(episode_samples)
         goal_reached_percentage += has_reached_goal / len(episode_samples)
+        less_than_15_steps_percentage += (has_reached_goal and episode_path_length < 15) / len(episode_samples)
+        optimal_path_length, _ = calculate_optimal_time_estimation(episode_sample["agent_states"], episode_sample["goal_location"])
+        average_excess_path_length += (episode_path_length - optimal_path_length) / len(episode_samples)
 
     if tracker is not None and validation_index is not None:
         tracker.log_metric(
@@ -187,14 +193,23 @@ def validate(
             goal_reached_percentage,
             validation_index,
         )
+        tracker.log_metric(
+            "validation_less_than_15_steps_percentage",
+            less_than_15_steps_percentage,
+            validation_index,
+        )
+        tracker.log_metric(
+            "validation_average_excess_path_length",
+            average_excess_path_length,
+            validation_index,
+        )
 
-    return average_reward, average_path_length, goal_reached_percentage
+    return average_reward, average_path_length, goal_reached_percentage, less_than_15_steps_percentage, average_excess_path_length
 
 
 def visualize_samples(
     agents: list[BaseAgent], env: Environment, num_visualizations: int = 5
 ) -> None:
-    # TODO: need a tool to set the visualizer of the environment on the fly
     env = deepcopy(env)
     env.visualizer.visualize = True
 
