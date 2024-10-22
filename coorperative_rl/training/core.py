@@ -36,7 +36,7 @@ def run_episode(
     env: Environment,
     is_training: bool,
     kill_episode_after: float | int = 10,
-    env_episode_initialization_params: dict | None = None,
+    env_episode_initialization_params: EpisodeSampleParams | dict | None = None,
 ) -> tuple[list[SARS], bool]:
     """
     A generic function that runs a single episode for a list of agents in a given environment.
@@ -55,7 +55,7 @@ def run_episode(
         if env_episode_initialization_params is not None
         else dict(agent_states=None, goal_location=None, allow_overlapping_objects=True)
     )
-    env.initialize_for_new_episode(**env_episode_initialization_params if env_episode_initialization_params else {})
+    env.initialize_for_new_episode(**env_episode_initialization_params)
 
     has_reached_goal = True
     is_done = False
@@ -211,7 +211,7 @@ def validate(
         average_path_length += episode_path_length / len(episode_samples)
         goal_reached_percentage += has_reached_goal / len(episode_samples)
         less_than_15_steps_percentage += (has_reached_goal and episode_path_length < 15) / len(episode_samples)
-        optimal_path_length, _ = calculate_optimal_time_estimation(episode_sample["agent_states"], episode_sample["goal_location"], env)
+        optimal_path_length, _ = calculate_optimal_time_estimation(episode_sample["agent_states"], episode_sample["goal_location"])
         average_excess_path_length += (episode_path_length - optimal_path_length) / len(episode_samples)
 
     if tracker is not None and validation_index is not None:

@@ -4,7 +4,6 @@ from typing import Sequence
 
 from coorperative_rl.agents.base import BaseAgent
 from coorperative_rl.states import AgentState, ObservableState, AgentType
-from coorperative_rl.envs import Environment
 
 
 def split_dict_by_agent_type(
@@ -21,6 +20,36 @@ def split_dict_by_agent_type(
         type_to_agent_states[state.agent_type][agent] = state
 
     return type_to_agent_states
+
+
+def split_by_type(
+    agent_states: tuple[
+        tuple[
+            int,
+            AgentType,
+            tuple[int, int],
+        ],
+        ...,
+    ],
+) -> tuple[tuple[tuple[int, tuple[int, int]], ...], ...]:
+    type_to_agent_states: dict[AgentType, dict[int, tuple[int, int]]] = {}
+
+    for agent_id, agent_type, agent_location in agent_states:
+        if agent_type not in type_to_agent_states:
+            type_to_agent_states[agent_type] = {}
+        type_to_agent_states[agent_type][agent_id] = agent_location
+
+    return tuple(
+        [
+            tuple(
+                [
+                    (agent_id, agent_location)
+                    for agent_id, agent_location in agent_states.items()
+                ]
+            )
+            for agent_states in type_to_agent_states.values()
+        ]
+    )
 
 
 def calculate_time_in_one_axis(
@@ -144,20 +173,22 @@ def calcluate_optiaml_time_estimation_for_agent_pair(
 
 @lru_cache(maxsize=5000)  # covers about 1/3 of 5*5 grid env with 2 agents
 def calculate_optimal_time_estimation_cached(
-    agent_states: tuple[tuple[BaseAgent, ObservableState], ...],
+    agent_states: tuple[
+        tuple[
+            int,
+            AgentType,
+            tuple[int, int],
+        ],
+        ...,
+    ],
     goal_location: tuple[int, int],
-) -> tuple[
-    int, tuple[tuple[BaseAgent, ObservableState], tuple[BaseAgent, ObservableState]]
-]:
+) -> tuple[int, tuple[int, ...]]:
     """
     Calculate the optimal time (step) estimation to solve the key-sharing problem between any number of agent (but currently it only support 2 agent types).
     """
-    type_to_agent_states = split_dict_by_agent_type(agent_states)
-    type_to_agent_states_tuples = [
-        [(agent, state) for agent, state in _agent_states.items()]
-        for _agent_states in type_to_agent_states.values()
-    ]  # we convert to tuple to avoid mypy error
-    all_possible_agent_combinations = itertools.product(*type_to_agent_states_tuples)
+    type_to_agent_states = split_by_type(agent_states)
+
+    all_possible_agent_combinations = itertools.product(*type_to_agent_states)
 
     shortest_time = float("inf")
     shortest_time_agent_combination = None
@@ -168,13 +199,14 @@ def calculate_optimal_time_estimation_cached(
         if len(agent_combination) != 2:
             raise ValueError("only support two agent types for now")
 
-        agent1, agent2 = agent_combination
+        (agent1_id, agent1_location), (agent2_id, agent2_location) = agent_combination
+
         time = calcluate_optiaml_time_estimation_for_agent_pair(
-            agent1[1].agent_location, agent2[1].agent_location, goal_location
+            agent1_location, agent2_location, goal_location
         )
         if time < shortest_time:
             shortest_time = time
-            shortest_time_agent_combination = (agent1, agent2)
+            shortest_time_agent_combination = (agent1_id, agent2_id)
 
     if not isinstance(shortest_time, int) or shortest_time_agent_combination is None:
         raise ValueError("no optimal time found")
@@ -185,17 +217,29 @@ def calculate_optimal_time_estimation_cached(
 def calculate_optimal_time_estimation(
     agent_states: dict[BaseAgent, AgentState],
     goal_location: tuple[int, int],
-    env: Environment,
-) -> tuple[
-    int, tuple[tuple[BaseAgent, ObservableState], tuple[BaseAgent, ObservableState]]
-]:
+) -> tuple[int, tuple[BaseAgent, ...]]:
     """
-    Calculate the optimal time (step) estimation to solve the key-sharing problem between any number of agent (but currently it only support 2 agent types).
+    Calculate the optimal time (step) estimation to solve
+    the key-sharing problem between any number of agent (but currently it only support 2 agent types).
+
+    This is only a wrapper function for `calculate_optimal_time_estimation_cached`
+    that converts the input to hashable format with minimum information.
     """
+
+    # extract the minimum information required to avoide cache miss
     _agent_states = tuple(
-        {
-            agent: env.state.get_observable_state_for_agent(agent)
-            for agent, _ in agent_states.items()
-        }.items()
-    )  # we need to make it hashable for caching
-    return calculate_optimal_time_estimation_cached(_agent_states, goal_location)
+        [
+            (agent.id, agent.type, agent_state.location)
+            for agent, agent_state in agent_states.items()
+        ]
+    )
+
+    shortest_time, shortest_time_agent_combination = (
+        calculate_optimal_time_estimation_cached(_agent_states, goal_location)
+    )
+
+    agent_id_to_agent = {agent.id: agent for agent in agent_states.keys()}
+    agent_combination = tuple(
+        [agent_id_to_agent[agent_id] for agent_id in shortest_time_agent_combination]
+    )
+    return shortest_time, agent_combination
