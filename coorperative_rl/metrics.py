@@ -42,16 +42,19 @@ def calculate_time_in_one_axis(
     assert a <= b
 
     # pt1: goal outside of agent pair
+    # --> meet at where the closer agent (to the goal) is
+    # (technically, the meeting point can be anywhere between the goal and b)
     if a >= g or b <= g:
-        pos_closer_to_goal = a if a >= b else b
-        pos_further_from_goal = b if a >= b else a
+        meeting_point = pos_closer_to_goal = a if abs(a - g) <= abs(b - g) else b
+        pos_further_from_goal = b if abs(a - g) <= abs(b - g) else a
         time_from_agent_to_meeting_point_upper_bound = abs(
             pos_closer_to_goal - pos_further_from_goal
         )
 
-        # if meeting point is on the goal, so we need to move around it
+        # if meeting point is on the goal, we need to move around it
         if pos_closer_to_goal == g and requires_move_around_goal:
             time_from_agent_to_meeting_point_upper_bound += 1
+            meeting_point = pos_closer_to_goal + 1 if a >= g else pos_closer_to_goal - 1
 
     # pt2: goal between agent pair
     else:
