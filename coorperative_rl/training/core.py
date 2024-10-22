@@ -3,8 +3,6 @@ import time
 from copy import deepcopy
 from typing import Sequence, TypeAlias, TypedDict
 
-from tqdm import tqdm
-
 from coorperative_rl.actions import Action
 from coorperative_rl.envs import Environment
 from coorperative_rl.agents.base import BaseAgent
@@ -56,7 +54,7 @@ def run_episode(
         if env_episode_initialization_params is not None
         else dict(agent_states=None, goal_location=None, allow_overlapping_objects=True)
     )
-    env.initialize_for_new_episode(env_episode_initialization_params)
+    env.initialize_for_new_episode(**env_episode_initialization_params if env_episode_initialization_params else {})
 
     has_reached_goal = True
     is_done = False
@@ -162,7 +160,7 @@ def validate(
     goal_reached_percentage = 0.0
     less_than_15_steps_percentage = 0.0
     average_excess_path_length = 0.0
-    for i, episode_sample in tqdm(enumerate(episode_samples)):
+    for i, episode_sample in enumerate(episode_samples):
         sars_collected, has_reached_goal = run_episode(
             agents,
             env,
