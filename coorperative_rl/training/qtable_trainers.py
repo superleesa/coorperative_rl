@@ -14,7 +14,7 @@ def train_qtable_based_agents(
     track: bool = True,
     tracker_type: str = "mlflow",
     validation_interval: int | None = 10,
-    visualization_interval: int | None = 100,
+    visualization_env_validation_interval: int | None = 100,
     # agent params
     epsilon: float = 0.1,
     alpha: float = 0.3,
@@ -24,7 +24,7 @@ def train_qtable_based_agents(
     key_share_reward: int | float = 100,
     goal_without_key_penalty: int | float = -100,
     time_penalty: int | float = -1,
-    visualize: bool = True,
+    visualize_env_train: bool = True,
 ) -> None:
     # agents share the same q-value matrix because the agents are symmetric
     qval_matrix = QTable(n=grid_size)
@@ -67,7 +67,7 @@ def train_qtable_based_agents(
 
     env = Environment(
         grid_size=grid_size,
-        visualize=visualize,
+        visualize=visualize_env_train,
         goal_state_reward=goal_state_reward,
         key_share_reward=key_share_reward,
         goal_without_key_penalty=goal_without_key_penalty,
@@ -89,7 +89,7 @@ def train_qtable_based_agents(
                 validate(agents, env, tracker, episode_idx)
 
             if (
-                visualization_interval is not None
-                and episode_idx % visualization_interval == 0
+                visualization_env_validation_interval is not None
+                and episode_idx % visualization_env_validation_interval == 0
             ):
                 visualize_samples(agents, env)
