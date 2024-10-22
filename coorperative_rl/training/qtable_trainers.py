@@ -18,6 +18,7 @@ def train_qtable_based_agents(
     tracker_type: str = "mlflow",
     validation_interval: int | None = 10,
     visualization_env_validation_interval: int | None = 100,
+    do_final_evaluation: bool = True,
     # agent params
     epsilon: float = 0.1,
     alpha: float = 0.3,
@@ -29,7 +30,7 @@ def train_qtable_based_agents(
     time_penalty: int | float = -1,
     initialization_has_full_key_prob: float = 0.0,
     visualize_env_train: bool = True,
-) -> None:
+) -> tuple[float, float, float, float, float] | None:
     
     # NOTE: agents can share the same q-value matrix if the agents are symmetric
     if model_sharing_level == "shared-all":
@@ -90,6 +91,7 @@ def train_qtable_based_agents(
     for agent in agents:
         env.add_agent(agent)
 
+    newest_validation_metrics = None
     with tracker:
         for episode_idx in tqdm(range(num_episodes)):
             run_episode(
@@ -100,10 +102,15 @@ def train_qtable_based_agents(
                 validation_interval is not None
                 and episode_idx % validation_interval == 0
             ):
-                validate(agents, env, tracker, validation_index=episode_idx)
+                newest_validation_metrics = validate(agents, env, tracker, validation_index=episode_idx)
 
             if (
                 visualization_env_validation_interval is not None
                 and episode_idx % visualization_env_validation_interval == 0
             ):
                 visualize_samples(agents, env)
+    
+    if do_final_evaluation:
+        newest_validation_metrics = validate(agents, env, tracker, validation_index=num_episodes)
+    
+    return newest_validation_metrics
