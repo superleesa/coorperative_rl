@@ -1,5 +1,4 @@
 import itertools
-from functools import lru_cache
 
 from coorperative_rl.agents.base import BaseAgent
 from coorperative_rl.states import AgentState, AgentType
@@ -154,8 +153,7 @@ def calcluate_optiaml_time_estimation_for_agent_pair(
     return total_time
 
 
-@lru_cache(maxsize=5000)  # covers about 1/3 of 5*5 grid env with 2 agents
-def calculate_optimal_time_estimation_cached(
+def _calculate_optimal_time_estimation(
     agent_states: tuple[
         tuple[
             int,
@@ -208,7 +206,6 @@ def calculate_optimal_time_estimation(
     This is only a wrapper function for `calculate_optimal_time_estimation_cached`
     that converts the input to hashable format with minimum information.
     """
-
     # extract the minimum information required to avoide cache miss
     _agent_states = tuple(
         [
@@ -218,11 +215,12 @@ def calculate_optimal_time_estimation(
     )
 
     shortest_time, shortest_time_agent_combination = (
-        calculate_optimal_time_estimation_cached(_agent_states, goal_location)
+        _calculate_optimal_time_estimation(_agent_states, goal_location)
     )
-
+    
     agent_id_to_agent = {agent.id: agent for agent in agent_states.keys()}
     agent_combination = tuple(
         [agent_id_to_agent[agent_id] for agent_id in shortest_time_agent_combination]
     )
+    
     return shortest_time, agent_combination
