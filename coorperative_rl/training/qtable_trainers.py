@@ -92,7 +92,7 @@ def train_qtable_based_agents(
     with tracker:
         for episode_idx in tqdm(range(num_episodes)):
             run_episode(
-                agents, env
+                agents, env, is_training=True,
             )  # for now, we don't plot statistics for training loops
 
             if (

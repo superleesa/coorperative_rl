@@ -34,6 +34,7 @@ class EpisodeSampleParams(TypedDict):
 def run_episode(
     agents: Sequence[BaseAgent],
     env: Environment,
+    is_training: bool,
     kill_episode_after: float | int = 10,
     env_episode_initialization_params: dict | None = None,
 ) -> tuple[list[SARS], bool]:
@@ -76,6 +77,9 @@ def run_episode(
         previous_state, current_state, rewards, is_done = env.end_step()
         sars_history.append((previous_state, env.action_taken, rewards, current_state))
 
+        if not is_training:
+            continue
+        
         for agent in agents:
             agent.update_model(
                 original_state=previous_state[agent],
@@ -164,6 +168,7 @@ def validate(
         sars_collected, has_reached_goal = run_episode(
             agents,
             env,
+            is_training=False,
             env_episode_initialization_params=episode_sample,
             kill_episode_after=0.01,
         )
@@ -228,6 +233,6 @@ def visualize_samples(
     ]
 
     for episode_sample in episode_samples:
-        run_episode(agents, env, env_episode_initialization_params=episode_sample)
+        run_episode(agents, env, is_training=False, env_episode_initialization_params=episode_sample)
 
     env.visualizer.close()
