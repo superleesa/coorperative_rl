@@ -1,4 +1,5 @@
 import random
+from typing import Any
 
 import numpy as np
 
@@ -14,7 +15,8 @@ class QTableAgent(BaseAgent):
         agent_id: int,
         agent_type: AgentType,
         qval_matrix: QTable,
-        epsilon: float = 0.1,
+        epsilon_initial: float = 0.9,
+        epsilon_final: float = 0.1,
         alpha: float = 0.3,
         discount_rate: float = 0.9,
     ) -> None:
@@ -22,7 +24,9 @@ class QTableAgent(BaseAgent):
 
         self.qval_matrix = qval_matrix
 
-        self.epsilon = epsilon
+        self.epsilon_initial = epsilon_initial
+        self.epsilon_final = epsilon_final
+        self.epsilon = epsilon_initial
         self.alpha = alpha
         self.discount_rate = discount_rate
 
@@ -60,3 +64,15 @@ class QTableAgent(BaseAgent):
             - self.qval_matrix.get_state_qvals(original_state, actions=action)
         )
         self.qval_matrix.increase_qval(original_state, action, qval_difference)
+
+    def update_hyper_parameters(
+        self, current_episode_idx: int, num_total_episodes: int, **kwargs: Any
+    ) -> None:
+        # linear epsilon decay
+        epsilon = self.epsilon_initial - (
+            (self.epsilon_initial - self.epsilon_final)
+            * (current_episode_idx / num_total_episodes)
+        )
+        self.epsilon = max(
+            self.epsilon_final, epsilon
+        )  # Ensure epsilon doesn't go below epsilon_final

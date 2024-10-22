@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 from coorperative_rl.actions import Action
 from coorperative_rl.states import AgentType, ObservableState
@@ -20,7 +21,7 @@ class BaseAgent(ABC):
         state: ObservableState,
         is_training: bool = True,
     ) -> Action: ...
-    
+
     @abstractmethod
     def update_model(
         self,
@@ -28,8 +29,12 @@ class BaseAgent(ABC):
         moved_state: ObservableState,
         reward: float,
         action: Action,
+    ) -> None: ...
+
+    def update_hyper_parameters(
+        self, current_episode_idx: int, num_total_episodes: int, **kwargs: Any
     ) -> None:
-        ...
+        pass
 
     def __hash__(self) -> int:
         return self.id

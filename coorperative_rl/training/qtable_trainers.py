@@ -20,7 +20,8 @@ def train_qtable_based_agents(
     visualization_env_validation_interval: int | None = 100,
     do_final_evaluation: bool = True,
     # agent params
-    epsilon: float = 0.1,
+    epsilon_initial: float = 0.9,
+    epsilon_final: float = 0.1,
     alpha: float = 0.3,
     discount_rate: float = 0.9,
     # env params
@@ -30,7 +31,8 @@ def train_qtable_based_agents(
     time_penalty: int | float = -1,
     initialization_has_full_key_prob: float = 0.0,
     visualize_env_train: bool = True,
-) -> tuple[float, float, float, float, float] | None:
+) -> tuple[tuple[float, float, float, float, float] | None, list[QTable]]:
+    # NOTE: currently, this only supports two agents of each type
     
     # NOTE: agents can share the same q-value matrix if the agents are symmetric
     if model_sharing_level == "shared-all":
@@ -48,7 +50,8 @@ def train_qtable_based_agents(
             agent_id=0,
             agent_type=AgentType.TYPE_A,
             qval_matrix=models[0],
-            epsilon=epsilon,
+            epsilon_initial=epsilon_initial,
+            epsilon_final=epsilon_final,
             alpha=alpha,
             discount_rate=discount_rate,
         ),
@@ -56,7 +59,8 @@ def train_qtable_based_agents(
             agent_id=1,
             agent_type=AgentType.TYPE_A,
             qval_matrix=models[1],
-            epsilon=epsilon,
+            epsilon_initial=epsilon_initial,
+            epsilon_final=epsilon_final,
             alpha=alpha,
             discount_rate=discount_rate,
         ),
@@ -64,7 +68,8 @@ def train_qtable_based_agents(
             agent_id=2,
             agent_type=AgentType.TYPE_B,
             qval_matrix=models[2],
-            epsilon=epsilon,
+            epsilon_initial=epsilon_initial,
+            epsilon_final=epsilon_final,
             alpha=alpha,
             discount_rate=discount_rate,
         ),
@@ -72,7 +77,8 @@ def train_qtable_based_agents(
             agent_id=3,
             agent_type=AgentType.TYPE_B,
             qval_matrix=models[3],
-            epsilon=epsilon,
+            epsilon_initial=epsilon_initial,
+            epsilon_final=epsilon_final,
             alpha=alpha,
             discount_rate=discount_rate,
         ),
@@ -96,7 +102,7 @@ def train_qtable_based_agents(
         for episode_idx in tqdm(range(num_episodes)):
             run_episode(
                 agents, env, is_training=True, env_episode_initialization_params={"has_full_key_prob": initialization_has_full_key_prob}
-            )  # for now, we don't plot statistics for training loops
+            )
 
             if (
                 validation_interval is not None
@@ -109,8 +115,12 @@ def train_qtable_based_agents(
                 and episode_idx % visualization_env_validation_interval == 0
             ):
                 visualize_samples(agents, env)
+            
+            # update epsilon
+            for agent in agents:
+                agent.update_hyper_parameters(episode_idx, num_episodes)
     
     if do_final_evaluation:
         newest_validation_metrics = validate(agents, env, tracker, validation_index=num_episodes)
     
-    return newest_validation_metrics
+    return newest_validation_metrics, models
