@@ -65,4 +65,18 @@ def shuffle_and_distribute_agents(agents: list[BaseAgent]) -> list[BaseAgent]:
         random_index = random.randint(0, len(agents)-1)
         fixed_agents.append(agents.pop(random_index))  # maybe there is a better way to do this
     
-    return fixed_agents + shuffle_list_not_in_place(flatten_2D_list(list(type_to_agents.values())))
+    return fixed_agents + shuffle_list_not_in_place(flatten_2D_list(list(type_to_agents.values()))
+    )
+
+
+def generate_unique_id() -> str:
+    # Get the current time and format it for uniqueness
+    return datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
+
+
+def save_checkpoint(models: list[Any], checkpoint_id: str) -> None:
+    checkpoint_dir = Path("checkpoints")
+    checkpoint_dir.mkdir(exist_ok=True)
+    store_path = checkpoint_dir / f"{checkpoint_id}.pkl"
+    with open(store_path, "wb") as f:
+        pickle.dump(models, f)
