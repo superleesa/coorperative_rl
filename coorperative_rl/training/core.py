@@ -178,7 +178,7 @@ def validate(
         average_path_length += episode_path_length / len(episode_samples)
         goal_reached_percentage += has_reached_goal / len(episode_samples)
         less_than_15_steps_percentage += (has_reached_goal and episode_path_length < 15) / len(episode_samples)
-        optimal_path_length, _ = calculate_optimal_time_estimation(episode_sample["agent_states"], episode_sample["goal_location"])
+        optimal_path_length, _ = calculate_optimal_time_estimation(episode_sample["agent_states"], episode_sample["goal_location"], env)
         average_excess_path_length += (episode_path_length - optimal_path_length) / len(episode_samples)
 
     if tracker is not None and validation_index is not None:

@@ -3,7 +3,8 @@ from functools import lru_cache
 from typing import Sequence
 
 from coorperative_rl.agents.base import BaseAgent
-from coorperative_rl.states import ObservableState, AgentType
+from coorperative_rl.states import AgentState, ObservableState, AgentType
+from coorperative_rl.envs import Environment
 
 
 def split_dict_by_agent_type(
@@ -181,12 +182,19 @@ def calculate_optimal_time_estimation_cached(
 
 
 def calculate_optimal_time_estimation(
-    agent_states: dict[BaseAgent, ObservableState], goal_location: tuple[int, int]
+    agent_states: dict[BaseAgent, AgentState],
+    goal_location: tuple[int, int],
+    env: Environment,
 ) -> tuple[
     int, tuple[tuple[BaseAgent, ObservableState], tuple[BaseAgent, ObservableState]]
 ]:
     """
     Calculate the optimal time (step) estimation to solve the key-sharing problem between any number of agent (but currently it only support 2 agent types).
     """
-    _agent_states = tuple(agent_states.items())  # we need to make it hashable for caching
+    _agent_states = tuple(
+        {
+            agent: env.state.get_observable_state_for_agent(agent)
+            for agent, _ in agent_states.items()
+        }.items()
+    )  # we need to make it hashable for caching
     return calculate_optimal_time_estimation_cached(_agent_states, goal_location)
