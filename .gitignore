@@ -1,2 +1,4 @@
 __pycache__
 mlruns/
+checkpoints/
+tuning_result.db
