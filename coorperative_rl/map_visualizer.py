@@ -8,26 +8,25 @@ import numpy as np
 if TYPE_CHECKING:
     from coorperative_rl.envs import Environment
 
-fig, ax = plt.subplots()  # use this globally
-
 
 class MapVisualizer:
-    COLORS = ["purple", "orange", "lime"]
-    HAS_KEY_COLORS = ["blue", "red", "green"]
-
     def __init__(self, env: Environment, plot_pause_seconds: float | int = 0.7, visualize: bool = True) -> None:
         self.visualize = visualize
         
         self.env = env
 
-        self.fig = fig
-        self.ax = ax
+        self.fig, self.ax = None, None
         
         self.plot_pause_seconds = plot_pause_seconds  # Pause to allow visualization of the movement
 
     def update(self) -> None:
         if not self.visualize:
             return
+        
+        # create figure and axis lazily to avoid showing up on the screen even if visualize is False
+        if self.fig is None or self.ax is None:
+            self.fig, self.ax = plt.subplots()
+        
         self.ax.clear()
 
         self.ax.set_xlim(0, self.env.grid_size)
@@ -41,9 +40,9 @@ class MapVisualizer:
         for agent_state in self.env.state.agent_states.values():
             agent_icon = agent_state.type.name.lstrip("TYPE_") + str(agent_state.id)
             agent_color = (
-                MapVisualizer.COLORS[agent_state.type.value]
-                if not agent_state.has_full_key
-                else MapVisualizer.HAS_KEY_COLORS[agent_state.type.value]
+                "red"
+                if agent_state.has_full_key
+                else "black"
             )
             
             # agent location
@@ -76,14 +75,14 @@ class MapVisualizer:
             ha="center",
             va="center",
             fontsize=16,
-            color="black",
+            color="blue",
         )
         goal_legend = plt.Line2D(
             [0],
             [0],
             marker="o",
             color="w",
-            markerfacecolor="black",
+            markerfacecolor="blue",
             markersize=8,
             label="Goal (G)",
         )
