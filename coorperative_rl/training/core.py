@@ -173,6 +173,15 @@ def validate(
     FIXME: maybe we need support more statistics
     This assumes that there is no difference in models between agents with the same type (to reduce number of possible start states).
     # TODO: implement sampling functinality
+    
+    Args:
+        agents: A list of agents participating in the episode.
+        env: The environment in which the episode takes place.
+        tracker: A tracker to log the metrics.
+        num_samples: Number of samples to generate for validation. Defaults to 1000.
+        validation_index: The index of the validation. Defaults to None.
+        
+    Returns: A tuple containing the average reward, average path length, goal reached percentage, less than 15 steps percentage, and average excess path length.
     """
     if tracker and validation_index is None:
         raise ValueError("validation_index must be provided when tracker is provided")
