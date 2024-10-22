@@ -71,6 +71,7 @@ def run_episode(
             action = agent.decide_action(
                 possible_actions=env.get_available_actions(agent),
                 state=env.state.get_observable_state_for_agent(agent),
+                is_training=is_training,
             )
             env.step_one_agent(agent, action)
 
