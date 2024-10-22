@@ -1,3 +1,5 @@
+from typing import Literal
+
 from tqdm import tqdm
 
 from coorperative_rl.agents.qtable_agent import QTableAgent
@@ -11,6 +13,7 @@ from coorperative_rl.trackers import select_tracker
 def train_qtable_based_agents(
     grid_size: int = 5,
     num_episodes: int = 300,
+    model_sharing_level: Literal["shared-all", "shared-type", "separate"] = "shared-type",
     track: bool = True,
     tracker_type: str = "mlflow",
     validation_interval: int | None = 10,
@@ -26,13 +29,23 @@ def train_qtable_based_agents(
     time_penalty: int | float = -1,
     visualize_env_train: bool = True,
 ) -> None:
-    # agents share the same q-value matrix because the agents are symmetric
-    qval_matrix = QTable(n=grid_size)
+    
+    # NOTE: agents can share the same q-value matrix if the agents are symmetric
+    if model_sharing_level == "shared-all":
+        shared_model = QTable(n=grid_size)
+        models = [shared_model for _ in range(4)]
+    elif model_sharing_level == "shared-type":
+        shared_model_a = QTable(n=grid_size)
+        shared_model_b = QTable(n=grid_size)
+        models = [shared_model_a, shared_model_a, shared_model_b, shared_model_b]
+    else:
+        models = [QTable(n=grid_size) for _ in range(4)]
+    
     agents = [
         QTableAgent(
             agent_id=0,
             agent_type=AgentType.TYPE_A,
-            qval_matrix=qval_matrix,
+            qval_matrix=models[0],
             epsilon=epsilon,
             alpha=alpha,
             discount_rate=discount_rate,
@@ -40,7 +53,7 @@ def train_qtable_based_agents(
         QTableAgent(
             agent_id=1,
             agent_type=AgentType.TYPE_A,
-            qval_matrix=qval_matrix,
+            qval_matrix=models[1],
             epsilon=epsilon,
             alpha=alpha,
             discount_rate=discount_rate,
@@ -48,7 +61,7 @@ def train_qtable_based_agents(
         QTableAgent(
             agent_id=2,
             agent_type=AgentType.TYPE_B,
-            qval_matrix=qval_matrix,
+            qval_matrix=models[2],
             epsilon=epsilon,
             alpha=alpha,
             discount_rate=discount_rate,
@@ -56,7 +69,7 @@ def train_qtable_based_agents(
         QTableAgent(
             agent_id=3,
             agent_type=AgentType.TYPE_B,
-            qval_matrix=qval_matrix,
+            qval_matrix=models[3],
             epsilon=epsilon,
             alpha=alpha,
             discount_rate=discount_rate,
