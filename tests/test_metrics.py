@@ -26,7 +26,3 @@ from coorperative_rl.metrics import calculate_time_in_one_axis
 )
 def test_calculate_time_in_one_axis(a, b, g, requires_move_around_goal, expected):
     assert calculate_time_in_one_axis(a, b, g, requires_move_around_goal) == expected
-
-
-if __name__ == "__main__":
-    pytest.main()
