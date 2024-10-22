@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import random
 from typing import TYPE_CHECKING
 
-from coorperative_rl.states import AgentType
-
 if TYPE_CHECKING:
     from coorperative_rl.agents.base import BaseAgent
+    from coorperative_rl.states import AgentType
 
 def generate_random_location(grid_size: int, disallowed_locations: list[tuple[int, int]] | None = None) -> tuple[int, int]:
     return generate_random_pair_numbers(0, grid_size-1, disallowed_locations)
