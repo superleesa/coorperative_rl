@@ -1,25 +1,8 @@
 import itertools
 from functools import lru_cache
-from typing import Sequence
 
 from coorperative_rl.agents.base import BaseAgent
-from coorperative_rl.states import AgentState, ObservableState, AgentType
-
-
-def split_dict_by_agent_type(
-    agent_states: dict[BaseAgent, ObservableState]
-    | Sequence[tuple[BaseAgent, ObservableState]],
-) -> dict[AgentType, dict[BaseAgent, ObservableState]]:
-    type_to_agent_states: dict[AgentType, dict[BaseAgent, ObservableState]] = {}
-
-    for agent, state in (
-        agent_states.items() if isinstance(agent_states, dict) else agent_states
-    ):
-        if state.agent_type not in type_to_agent_states:
-            type_to_agent_states[state.agent_type] = {}
-        type_to_agent_states[state.agent_type][agent] = state
-
-    return type_to_agent_states
+from coorperative_rl.states import AgentState, AgentType
 
 
 def split_by_type(

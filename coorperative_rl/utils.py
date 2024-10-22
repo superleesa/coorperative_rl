@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pickle
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 import datetime
 import random
@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from coorperative_rl.agents.base import BaseAgent
-    from coorperative_rl.states import AgentType
+    from coorperative_rl.states import AgentType, ObservableState
 
 
 def generate_random_location(
@@ -96,3 +96,19 @@ def save_checkpoint(models: list[Any], checkpoint_id: str) -> None:
     store_path = checkpoint_dir / f"{checkpoint_id}.pkl"
     with open(store_path, "wb") as f:
         pickle.dump(models, f)
+
+
+def split_dict_by_agent_type(
+    agent_states: dict[BaseAgent, ObservableState]
+    | Sequence[tuple[BaseAgent, ObservableState]],
+) -> dict[AgentType, dict[BaseAgent, ObservableState]]:
+    type_to_agent_states: dict[AgentType, dict[BaseAgent, ObservableState]] = {}
+
+    for agent, state in (
+        agent_states.items() if isinstance(agent_states, dict) else agent_states
+    ):
+        if state.agent_type not in type_to_agent_states:
+            type_to_agent_states[state.agent_type] = {}
+        type_to_agent_states[state.agent_type][agent] = state
+
+    return type_to_agent_states
