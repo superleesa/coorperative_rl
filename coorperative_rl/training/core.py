@@ -141,7 +141,7 @@ def generate_episode_samples(
 
 
 def validate(
-    agents: list[BaseAgent],
+    agents: Sequence[BaseAgent],
     env: Environment,
     tracker: BaseTracker | None,
     validation_index: int | None = None,
@@ -208,7 +208,7 @@ def validate(
 
 
 def visualize_samples(
-    agents: list[BaseAgent], env: Environment, num_visualizations: int = 5
+    agents: Sequence[BaseAgent], env: Environment, num_visualizations: int = 5
 ) -> None:
     env = deepcopy(env)
     env.visualizer.visualize = True
