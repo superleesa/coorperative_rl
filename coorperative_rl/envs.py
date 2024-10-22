@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from coorperative_rl.states import GlobalState, AgentState, ObservableState
 
 from coorperative_rl.actions import Action
@@ -41,7 +41,7 @@ class Environment:
         self,
         agent_states: dict[BaseAgent, AgentState] | None = None,
         goal_location: tuple[int, int] | None = None,
-        allow_overlapping_objects: bool = False,
+        **kwargs: Any,
     ) -> None:
         if (
             agent_states is None
@@ -52,11 +52,9 @@ class Environment:
             raise ValueError("not supported (yet)")
 
         if agent_states is not None and goal_location is not None:
-            if allow_overlapping_objects:
-                raise ValueError("overlapping objects are not supported with custom agent states")
-            self.state.initialize_state_from_values(agent_states, goal_location)
+            self.state.initialize_state_from_values(agent_states, goal_location, **kwargs)
         else:
-            self.state.initialize_state_randomly(allow_overlapping_objects=allow_overlapping_objects)
+            self.state.initialize_state_randomly(**kwargs)
 
     def get_available_actions(self, agent: BaseAgent) -> list[Action]:
         """

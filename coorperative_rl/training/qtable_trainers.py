@@ -27,6 +27,7 @@ def train_qtable_based_agents(
     key_share_reward: int | float = 100,
     goal_without_key_penalty: int | float = -100,
     time_penalty: int | float = -1,
+    initialization_has_full_key_prob: float = 0.0,
     visualize_env_train: bool = True,
 ) -> None:
     
@@ -92,7 +93,7 @@ def train_qtable_based_agents(
     with tracker:
         for episode_idx in tqdm(range(num_episodes)):
             run_episode(
-                agents, env, is_training=True,
+                agents, env, is_training=True, env_episode_initialization_params={"has_full_key_prob": initialization_has_full_key_prob}
             )  # for now, we don't plot statistics for training loops
 
             if (
