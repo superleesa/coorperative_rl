@@ -37,6 +37,7 @@ class ObservableState(BaseModel):
     # 3) whether the agent itself has full key or not
 
     agent_location: tuple[int, int]
+    agent_type: AgentType
     closest_opposite_agent_location: tuple[int, int]
     has_full_key: bool
     goal_location: tuple[int, int]
@@ -81,6 +82,7 @@ class GlobalState:
             closest_opposite_agent_location=closest_opposite_agent_state.location,
             has_full_key=agent_state.has_full_key,
             goal_location=self.goal_location,
+            agent_type=agent_state.type,
         )
 
     def add_agent(self, agent: BaseAgent) -> None:
