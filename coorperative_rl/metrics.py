@@ -1,13 +1,14 @@
 import itertools
 from functools import lru_cache
+from typing import Sequence
 
 from coorperative_rl.agents.base import BaseAgent
-from coorperative_rl.states import ObservableState, AgentState, AgentType
+from coorperative_rl.states import ObservableState, AgentType
 
 
 def split_dict_by_agent_type(
     agent_states: dict[BaseAgent, ObservableState]
-    | list[tuple[BaseAgent, ObservableState]],
+    | Sequence[tuple[BaseAgent, ObservableState]],
 ) -> dict[AgentType, dict[BaseAgent, ObservableState]]:
     type_to_agent_states: dict[AgentType, dict[BaseAgent, ObservableState]] = {}
 
@@ -117,7 +118,7 @@ def calcluate_optiaml_time_estimation_for_agent_pair(
 
 @lru_cache(maxsize=5000)  # covers about 1/3 of 5*5 grid env with 2 agents
 def calculate_optimal_time_estimation_cached(
-    agent_states: list[tuple[BaseAgent, ObservableState]],
+    agent_states: tuple[tuple[BaseAgent, ObservableState], ...],
     goal_location: tuple[int, int],
 ) -> tuple[
     int, tuple[tuple[BaseAgent, ObservableState], tuple[BaseAgent, ObservableState]]
@@ -135,7 +136,7 @@ def calculate_optimal_time_estimation_cached(
     shortest_time = float("inf")
     shortest_time_agent_combination = None
 
-    for agent_combination in all_possible_agent_combinations:
+    for agent_combination in all_possible_agent_combinations:  # should only be 8 if 4 agents with 2 types
         if len(agent_combination) != 2:
             raise ValueError("only support two agent types for now")
 
