@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class Environment:
     def __init__(
         self,
-        grid_size: int = 4,
+        grid_size: int = 5,
         goal_state_reward: int | float = 50,
         key_share_reward: int | float = 100,
         goal_without_key_penalty: int | float = -100,
