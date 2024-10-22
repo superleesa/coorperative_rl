@@ -91,9 +91,10 @@ def run_episode(
     return sars_history, has_reached_goal
 
 
-def generate_episode_samples(
+def generate_episode_samples_all_agent_pair_locations(
     grid_size: int, agents: list[BaseAgent]
 ) -> list[EpisodeSampleParams]:
+    # FIXME: weired function name
     # NOTE: [positions of agents to control] + [positions of agents that doesn't need to be controlled (so we randomly shuffle)]
     # [fixed agent position parts] + [unfixed agent positions parts]
 
@@ -142,10 +143,29 @@ def generate_episode_samples(
     return episode_samples
 
 
+def generate_episode_samples(grid_size: int, agents: list[BaseAgent], num_samples: int) -> list[EpisodeSampleParams]:
+    return [
+        {
+            "agent_states": {
+                agent: AgentState(
+                    id=agent.id,
+                    type=agent.type,
+                    location=generate_random_location(grid_size),
+                    has_full_key=False,
+                )
+                for agent in agents
+            },
+            "goal_location": generate_random_location(grid_size),
+        }
+        for _ in range(num_samples)
+    ]
+
+
 def validate(
     agents: Sequence[BaseAgent],
     env: Environment,
     tracker: BaseTracker | None,
+    num_samples: int = 5000,
     validation_index: int | None = None,
 ) -> tuple[float, float, float, float, float]:
     """
@@ -157,7 +177,7 @@ def validate(
         raise ValueError("validation_index must be provided when tracker is provided")
 
     env = deepcopy(env)
-    episode_samples = generate_episode_samples(grid_size=env.grid_size, agents=agents)
+    episode_samples = generate_episode_samples(grid_size=env.grid_size, agents=agents, num_samples=num_samples)  # 1/3 of the total possible states
 
     average_reward = 0.0
     average_path_length = 0.0
@@ -216,21 +236,7 @@ def visualize_samples(
     env = deepcopy(env)
     env.visualizer.visualize = True
 
-    episode_samples = [
-        {
-            "agent_states": {
-                agent: AgentState(
-                    id=agent.id,
-                    type=agent.type,
-                    location=generate_random_location(env.grid_size),
-                    has_full_key=False,
-                )
-                for agent in agents
-            },
-            "goal_location": generate_random_location(env.grid_size),
-        }
-        for _ in range(num_visualizations)
-    ]
+    episode_samples = generate_episode_samples(grid_size=env.grid_size, agents=agents, num_samples=num_visualizations)
 
     for episode_sample in episode_samples:
         run_episode(agents, env, is_training=False, env_episode_initialization_params=episode_sample)

@@ -99,7 +99,7 @@ def train_qtable_based_agents(
                 validation_interval is not None
                 and episode_idx % validation_interval == 0
             ):
-                validate(agents, env, tracker, episode_idx)
+                validate(agents, env, tracker, validation_index=episode_idx)
 
             if (
                 visualization_env_validation_interval is not None
