@@ -57,17 +57,40 @@ def calculate_time_in_one_axis(
             meeting_point = pos_closer_to_goal + 1 if a >= g else pos_closer_to_goal - 1
 
     # pt2: goal between agent pair
+    # --> meet at the median of the agent pair
     else:
-        meeting_point = median = (
-            a + b
-        ) // 2  # if number of cells is even, we take the left one
+        has_two_options = (a + b) % 2 == 0
 
-        # move the meeting point to the right / above side if meeting point was on goal
-        if meeting_point == g and requires_move_around_goal:
-            meeting_point += 1
+        median_left = (a + b) // 2
+        meeting_point_candiates = (
+            [median_left, median_left + 1] if has_two_options else [median_left]
+        )
+
+        # it's better to take the one at goal (if any of the agents is on the goal)
+        # but if requires_move_around_goal, we must not be on the goal
+        if any([candiate == g for candiate in meeting_point_candiates]):
+            if requires_move_around_goal:
+                filtered_candiates = [
+                    candiates for candiates in meeting_point_candiates if candiates != g
+                ]
+                if not filtered_candiates:
+                    meeting_point = (
+                        meeting_point_candiates[0] + 1
+                    )  # FIXME: this might go over the grid?
+                else:
+                    meeting_point = filtered_candiates[0]
+            else:
+                filtered_candiates = [
+                    candiates for candiates in meeting_point_candiates if candiates == g
+                ]
+                meeting_point = filtered_candiates[0]
+
+        else:
+            # general case: it doesn't matter if it's not on the goal
+            meeting_point = meeting_point_candiates[0]
 
         time_from_agent_to_meeting_point_upper_bound = max(
-            abs(b - median), abs(a - median)
+            abs(b - meeting_point), abs(a - meeting_point)
         )
 
     time_from_meeting_point_to_goal = abs(
