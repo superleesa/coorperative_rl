@@ -166,7 +166,7 @@ def validate(
     agents: Sequence[BaseAgent],
     env: Environment,
     tracker: BaseTracker | None,
-    num_samples: int = 5000,
+    num_samples: int = 1000,
     validation_index: int | None = None,
 ) -> tuple[float, float, float, float, float]:
     """
