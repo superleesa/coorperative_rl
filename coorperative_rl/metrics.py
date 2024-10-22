@@ -13,13 +13,12 @@ def split_dict_by_agent_type(
 ) -> dict[AgentType, dict[BaseAgent, ObservableState]]:
     type_to_agent_states: dict[AgentType, dict[BaseAgent, ObservableState]] = {}
 
-    if isinstance(agent_states, dict):
-        for agent, state in (
-            agent_states.items() if isinstance(agent_states, dict) else agent_states
-        ):
-            if state.agent_type not in type_to_agent_states:
-                type_to_agent_states[state.agent_type] = {}
-            type_to_agent_states[state.agent_type] |= {agent: state}
+    for agent, state in (
+        agent_states.items() if isinstance(agent_states, dict) else agent_states
+    ):
+        if state.agent_type not in type_to_agent_states:
+            type_to_agent_states[state.agent_type] = {}
+        type_to_agent_states[state.agent_type][agent] = state
 
     return type_to_agent_states
 
@@ -163,7 +162,9 @@ def calculate_optimal_time_estimation_cached(
     shortest_time = float("inf")
     shortest_time_agent_combination = None
 
-    for agent_combination in all_possible_agent_combinations:  # should only be 8 if 4 agents with 2 types
+    for (
+        agent_combination
+    ) in all_possible_agent_combinations:  # should only be 8 if 4 agents with 2 types
         if len(agent_combination) != 2:
             raise ValueError("only support two agent types for now")
 
