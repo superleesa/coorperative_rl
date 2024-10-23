@@ -112,3 +112,8 @@ def split_dict_by_agent_type(
         type_to_agent_states[state.agent_type][agent] = state
 
     return type_to_agent_states
+
+
+def load_models(checkpoint_path: str) -> list[Any]:
+    with open(checkpoint_path, "rb") as f:
+        return pickle.load(f)
