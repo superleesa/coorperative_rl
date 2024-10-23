@@ -54,18 +54,15 @@ class MatplotlibPlotTraker(BaseTracker):
     bascially, have a big figure and for each ax, draw visualization of metric
     """
 
-    MAX_NUM_PLOTS = 9  # assume we have 9 metrics to plot and no more
-
     def __init__(self) -> None:
-        self.max_num_plots = 9
+        self.max_rows, self.max_cols = 3, 2
         self.data: dict[
             str, tuple[plt.Axes, list[int], list[float]]
         ] = {}  # [ax, step, values]
 
     def __enter__(self) -> Self:
         self.fig, axs = plt.subplots(
-            MatplotlibPlotTraker.MAX_NUM_PLOTS // 3,
-            MatplotlibPlotTraker.MAX_NUM_PLOTS // 3,
+            self.max_rows, self.max_cols
         )
         self.axs = flatten_2D_list(axs)
         self.axs_unused = self.axs.copy()  # should point to the same axes
@@ -81,11 +78,11 @@ class MatplotlibPlotTraker(BaseTracker):
         del self.data
 
     def log_metric(self, key: str, value: float, step: int) -> None:
-        if key not in self.data and len(self.data) < MatplotlibPlotTraker.MAX_NUM_PLOTS:
+        if key not in self.data and len(self.data) < self.max_cols*self.max_rows:
             self.data[key] = (self.axs_unused.pop(), [], [])
         elif key not in self.data:
             warnings.warn(
-                f"Can't plot more than {MatplotlibPlotTraker.MAX_NUM_PLOTS} metrics"
+                f"Can't plot more than {self.max_cols*self.max_rows} metrics"
             )
             return
 
@@ -95,10 +92,13 @@ class MatplotlibPlotTraker(BaseTracker):
 
         ax.clear()
         ax.plot(self.data[key][1], self.data[key][2])
-        ax.set_title(f"{key} over time")
+        ax.set_title(f"{key}", fontsize=9)
+        
+        self.fig.suptitle("Validation Metrics", fontsize=14)
 
-        self.fig.canvas.flush_events()
-        plt.pause(0.001)  # small pause to allow GUI events to be processed
+        plt.subplots_adjust(wspace=0.3, hspace=0.6)
+        self.fig.canvas.draw_idle()
+        plt.pause(0.001)
 
 
 class NullTracker(BaseTracker):
