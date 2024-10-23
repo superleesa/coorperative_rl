@@ -101,7 +101,7 @@ def train_qtable_based_agents(
     with tracker:
         for episode_idx in tqdm(range(num_episodes)):
             run_episode(
-                agents, env, is_training=True, env_episode_initialization_params={"has_full_key_prob": initialization_has_full_key_prob}
+                agents, env, is_training=True, kill_episode_after=0.05, env_episode_initialization_params={"has_full_key_prob": initialization_has_full_key_prob}
             )
 
             if (
