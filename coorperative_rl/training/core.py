@@ -3,6 +3,8 @@ import time
 from copy import deepcopy
 from typing import Sequence, TypeAlias, TypedDict
 
+from tqdm import tqdm
+
 from coorperative_rl.actions import Action
 from coorperative_rl.envs import Environment
 from coorperative_rl.agents.base import BaseAgent
@@ -168,6 +170,7 @@ def validate(
     tracker: BaseTracker | None,
     num_samples: int = 1000,
     validation_index: int | None = None,
+    with_progress_bar: bool = False,
 ) -> tuple[float, float, float, float, float]:
     """
     FIXME: maybe we need support more statistics
@@ -195,7 +198,7 @@ def validate(
     less_than_15_steps_percentage = 0.0
     average_excess_path_length_sum = 0.0
     num_has_reached_goal = 0
-    for i, episode_sample in enumerate(episode_samples):
+    for i, episode_sample in enumerate(tqdm(episode_samples, disable=not with_progress_bar)):
         sars_collected, has_reached_goal = run_episode(
             agents,
             env,
