@@ -17,7 +17,7 @@ def train_qtable_based_agents(
         "shared-all", "shared-type", "separate"
     ] = "shared-type",
     track: bool = True,
-    tracker_type: str = "mlflow",
+    tracker_backend: str = "mlflow",
     validation_interval: int | None = 10,
     visualization_env_validation_interval: int | None = 100,
     do_final_evaluation: bool = True,
@@ -42,7 +42,7 @@ def train_qtable_based_agents(
         num_episodes: The number of episodes to train the agents
         model_sharing_level: The level of sharing the Q-value matrix between agents. Options are "shared-all", "shared-type", and "separate".
         track: Flag indicating whether to track the training process. Defaults to True.
-        tracker_type: The type of tracker to use. Defaults to "mlflow".
+        tracker_backend: The type of tracker to use. Defaults to "mlflow".
         validation_interval: The interval at which to validate the agents. Defaults to 10.
         visualization_env_validation_interval: The interval at which to visualize the environment during validation. Defaults to 100.
         do_final_evaluation: Flag indicating whether to do final evaluation after training. Defaults to True.
@@ -112,7 +112,7 @@ def train_qtable_based_agents(
         ),
     ]
 
-    tracker = select_tracker(track, tracker_type)
+    tracker = select_tracker(track, tracker_backend)
 
     env = Environment(
         grid_size=grid_size,

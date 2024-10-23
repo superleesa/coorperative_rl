@@ -7,7 +7,7 @@ def main() -> None:
     train_qtable_based_agents(
         num_episodes=300,
         # track=False,
-        tracker_type="matplotlib",
+        tracker_backend="matplotlib",
         visualize_env_train=False,
         visualization_env_validation_interval=10,
         validation_interval=10,
