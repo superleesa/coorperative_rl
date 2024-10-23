@@ -34,6 +34,32 @@ def train_qtable_based_agents(
     initialization_has_full_key_prob: float = 0.0,
     visualize_env_train: bool = True,
 ) -> tuple[tuple[float, float, float, float, float] | None, list[QTable]]:
+    """
+    A tabular Q-learning trainer for cooperative agents.
+    
+    Args:
+        grid_size: The size of the grid world
+        num_episodes: The number of episodes to train the agents
+        model_sharing_level: The level of sharing the Q-value matrix between agents. Options are "shared-all", "shared-type", and "separate".
+        track: Flag indicating whether to track the training process. Defaults to True.
+        tracker_type: The type of tracker to use. Defaults to "mlflow".
+        validation_interval: The interval at which to validate the agents. Defaults to 10.
+        visualization_env_validation_interval: The interval at which to visualize the environment during validation. Defaults to 100.
+        do_final_evaluation: Flag indicating whether to do final evaluation after training. Defaults to True.
+        epsilon_initial: The initial epsilon value for epsilon-greedy action selection. Defaults to 0.9.
+        epsilon_final: The final epsilon value for epsilon-greedy action selection. Defaults to 0.1.
+        alpha: The learning rate for updating the Q-value matrix. Defaults to 0.3.
+        discount_rate: The discount rate for future rewards. Defaults to 0.9.
+        goal_state_reward: The reward for reaching the goal state. Defaults to 50.
+        key_share_reward: The reward for sharing the key. Defaults to 100.
+        goal_without_key_penalty: The penalty for reaching the goal state without the key. Defaults to -100.
+        time_penalty: The penalty for each time step. Defaults to -1.
+        initialization_has_full_key_prob: The probability of having the full key at the start of the episode. Defaults to 0.0.
+        visualize_env_train: Flag indicating whether to visualize the environment during training. Defaults to True.
+    
+    Returns:
+        The validation metrics (see validate function) and the Q-value matrix models.
+    """
     # NOTE: currently, this only supports two agents of each type
 
     # NOTE: agents can share the same q-value matrix if the agents are symmetric

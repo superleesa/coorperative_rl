@@ -44,14 +44,19 @@ def run_episode(
     env_episode_initialization_params: EpisodeSampleParams | dict | None = None,
 ) -> tuple[list[SARS], bool]:
     """
-    A generic function that runs a single episode for a list of agents in a given environment.
+    Runs a single episode for a list of agents in a given environment.
 
     Args:
         agents: A list of agents participating in the episode.
         env: The environment in which the episode takes place.
+        is_training: A flag indicating whether the episode is for training purposes. It won't update agent model states if set to False.
         kill_episode_after: Maximum duration (in seconds) for the episode. Defaults to 10.
         env_episode_initialization_params: Parameters for initializing the environment for the episode. Defaults to None.
-    Returns: A list of tuples containing the state-action-reward-state (SARS) history for the episode. And has_reached_goal flag.
+
+    Returns:
+        A tuple containing:
+            - A list of tuples representing the state-action-reward-state (SARS) history for the episode.
+            - A boolean flag indicating whether the goal was reached.
     """
     sars_history: list[SARS] = []  # FIXME: maybe this has a huge memory footprint
 
@@ -152,6 +157,17 @@ def generate_episode_samples_all_agent_pair_locations(
 def generate_episode_samples(
     grid_size: int, agents: list[BaseAgent], num_samples: int
 ) -> list[EpisodeSampleParams]:
+    """
+    Generate episode samples for the given agents and grid size.
+    
+    Args:
+        grid_size: The size of the grid.
+        agents: A list of agents participating in the episode.
+        num_samples: Number of samples to generate.
+    
+    Returns:
+        A list of episode samples.
+    """
     return [
         {
             "agent_states": {
@@ -172,6 +188,20 @@ def generate_episode_samples(
 def generate_full_episode_samples(
     grid_size: int, agents: list[BaseAgent]
 ) -> tuple[list[EpisodeSampleParams], list[BaseAgent]]:
+    """
+    Generate all possible episode samples for the given agents and grid size.
+    Use it if you want to validate on all possible environments (this will take a huge amount of time for larger env).
+    Note that this function would only consider one agent from each type (to reduce the number of possible start states).
+    
+    Args:
+        grid_size: The size of the grid.
+        agents: A list of agents participating in the episode.
+    
+    Returns:
+        A tuple containing:
+            - A list of all possible episode samples.
+            - A list of agents that are used within the samples.
+    """
     location_indices = [location for location in range(grid_size)]
 
     # pick one agent from each type (we don't need all agents because the game is symmetric)
@@ -222,18 +252,23 @@ def validate(
     with_progress_bar: bool = False,
 ) -> tuple[float, float, float, float, float]:
     """
-    FIXME: maybe we need support more statistics
-    This assumes that there is no difference in models between agents with the same type (to reduce number of possible start states).
-    # TODO: implement sampling functinality
-
+    Validate the performance of agents in a given environment.
+    
     Args:
         agents: A list of agents participating in the episode.
         env: The environment in which the episode takes place.
-        tracker: A tracker to log the metrics.
-        num_samples: Number of samples to generate for validation. Defaults to 1000. Set to "all" to validate on all possible environments (this will take a huge amount of time for larger env).
-        validation_index: The index of the validation. Defaults to None.
-
-    Returns: A tuple containing the average reward, average path length, goal reached percentage, less than 15 steps percentage, and average excess path length.
+        tracker: A tracker to log the metrics. If provided, `validation_index` must also be provided.
+        num_samples: Number of samples to generate for validation. Defaults to 1000. Set to "all" to validate on all possible environments (this will take a huge amount of time for larger environments).
+        validation_index: The index of the validation. Used for logging. Defaults to None.
+        with_progress_bar: Whether to display a progress bar during validation. Defaults to False.
+    
+    Returns:
+        tuple:
+        - average_reward: The average reward obtained by the agents.
+        - average_path_length: The average path length taken by the agents.
+        - goal_reached_percentage: The percentage of episodes where the goal was reached.
+        - less_than_15_steps_percentage: The percentage of episodes where the goal was reached in less than 15 steps.
+        - average_excess_path_length: The average excess path length over the optimal path length for episodes where the goal was reached.
     """
     if tracker and validation_index is None:
         raise ValueError("validation_index must be provided when tracker is provided")
@@ -330,6 +365,14 @@ def validate(
 def visualize_samples(
     agents: Sequence[BaseAgent], env: Environment, num_visualizations: int = 5
 ) -> None:
+    """
+    Visualize the samples of episodes for the given agents and environment.
+    
+    Args:
+        agents: A list of agents participating in the episode.
+        env: The environment in which the episode takes place.
+        num_visualizations: Number of visualizations to generate. Defaults to 5.
+    """
     env = deepcopy(env)
     env.visualizer.visualize = True
 

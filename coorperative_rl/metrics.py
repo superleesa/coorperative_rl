@@ -202,9 +202,13 @@ def calculate_optimal_time_estimation(
     """
     Calculate the optimal time (step) estimation to solve
     the key-sharing problem between any number of agent (but currently it only support 2 agent types).
-
-    This is only a wrapper function for `calculate_optimal_time_estimation_cached`
-    that converts the input to hashable format with minimum information.
+    
+    Args:
+        agent_states: The states of the agents.
+        goal_location: The location of the goal.
+    
+    Returns:
+        tuple[int, tuple[BaseAgent, ...]]: The optimal time and the agents that should meet.
     """
     # extract the minimum information required to avoide cache miss
     _agent_states = tuple(

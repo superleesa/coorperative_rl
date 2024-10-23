@@ -11,10 +11,7 @@ class QTable:
     """
 
     def __init__(self, n: int) -> None:
-        # TODO: check item_location and goal_location are within the grid
-        # TODO: the way we are stroing the q values is memory inefficient in a way that
-        # not all state will have all actions (we are storing 0 for those)
-
+        # NOTE:
         # these two matrices need to be different
         # because q-value distribution is different before and after key share
         # i.e. before the agent has the key, it should take actions to meet the other agent
@@ -29,6 +26,10 @@ class QTable:
     ) -> np.ndarray:
         """
         Returns Q(S), or Q(S, A) if actions are provided
+
+        Args:
+            state: The state for which to get the Q values.
+            actions: The actions for which to get the Q values. Defaults to None.
         """
         if isinstance(actions, Action):
             actions = [actions]
@@ -65,7 +66,13 @@ class QTable:
         self, state: ObservableState, action: Action, new_qval: float
     ) -> None:
         """
+        Use increse_qval instead, in most cases.
         Updates the Q value for a state-action pair, i.e. Q(S, A) = new_qval
+
+        Args:
+            state: The state for which to update the Q value.
+            action: The action for which to update the Q value.
+            new_qval: The new Q value.
         """
         x, y = state.agent_location
         goal_x, goal_y = state.goal_location
@@ -82,6 +89,11 @@ class QTable:
     ) -> None:
         """
         Increases the Q value for a state-action pair, i.e. Q(S, A) += increment
+
+        Args:
+            state: The state for which to increase the Q value.
+            action: The action for which to increase the Q value.
+            increment: The amount by which to increase the Q value.
         """
         x, y = state.agent_location
         goal_x, goal_y = state.goal_location

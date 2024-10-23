@@ -20,6 +20,9 @@ class QTableAgent(BaseAgent):
         alpha: float | None = 0.3,
         discount_rate: float | None = 0.9,
     ) -> None:
+        """
+        Training parameters can be None if the agent is only used for inference.
+        """
         super().__init__(agent_id, agent_type)
 
         self.qval_matrix = qval_matrix
@@ -37,8 +40,17 @@ class QTableAgent(BaseAgent):
         is_training: bool = True,
     ) -> Action:
         """
-        Epislon greedy method to choose action
+        Decides action using Epislon greedy method.
+        Args:
+            possible_actions: List of possible actions to choose from.
+            state: The current observable state of the environment.
+            is_training: Flag indicating whether the agent is in training mode. Defaults to True.
         """
+        if is_training and self.epsilon is None:
+            raise ValueError(
+                "epsilon_initial must be provided when initialization of agent to decide action during training"
+            )
+
         if is_training and random.random() < self.epsilon:
             return random.choice(possible_actions)
         else:
@@ -58,6 +70,14 @@ class QTableAgent(BaseAgent):
         reward: float,
         action: Action,
     ) -> None:
+        """
+        Updates the Q-value model based on the observed transition.
+        Args:
+            original_state: The state before the action was taken.
+            moved_state: The state after the action was taken.
+            reward: The reward received after taking the action.
+            action: The action that was taken.
+        """
         if self.discount_rate is None:
             raise ValueError(
                 "discount_rate must be provided when initialization of agent to update model"
@@ -73,6 +93,13 @@ class QTableAgent(BaseAgent):
     def update_hyper_parameters(
         self, current_episode_idx: int, num_total_episodes: int, **kwargs: Any
     ) -> None:
+        """
+        Implements epsilon decay.
+        
+        Args:
+            current_episode_idx: The current episode index.
+            num_total_episodes: The total number of episodes.
+        """
         if (
             self.epsilon_initial is None
             or self.epsilon_final is None

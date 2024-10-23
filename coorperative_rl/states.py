@@ -55,6 +55,15 @@ class GlobalState:
         self.goal_location: tuple[int, int]
 
     def get_closest_opposite_agent(self, agent_state: AgentState) -> AgentState:
+        """
+        Utility function to get the closest opposite agent to the given agent
+        
+        Args:
+            agent_state: the agent state to find the closest opposite agent to
+        
+        Returns:
+            AgentState: the closest opposite agent to the given agent
+        """
         min_distance = float("inf")
         min_distance_agent_id: int | None = None
 

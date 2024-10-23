@@ -48,12 +48,21 @@ def tabular_q_learning_objective(trial: optuna.Trial) -> tuple[float, float, flo
     return computed_metrics
 
 
-def tune(study_name: str, objective: Callable, directions: list[str]) -> None:
+def tune(study_name: str, objective: Callable, directions: list[str], storage: str | None = "sqlite:///tuning_result.db") -> None:
+    """
+    A generic function to tune hyperparameters using optuna
+    
+    Args:
+        study_name: The name of the study
+        objective: The objective function to optimize
+        directions: The direction of optimization for each metric in the objective function
+        storage: The storage URL for the study. By default, it uses sqlite:///tuning_result.db. If None, it uses in-memory storage (so the result won't be stored).
+    """
     NUM_TRIALS = 300
 
     study = optuna.create_study(
         directions=directions,
-        storage="sqlite:///tuning_result.db",
+        storage=storage,
         study_name=study_name,
         load_if_exists=True,
     )
@@ -64,6 +73,12 @@ def tune(study_name: str, objective: Callable, directions: list[str]) -> None:
 
 
 def tune_qtable(study_name: str) -> None:
+    """
+    A wrapper function to tune hyperparameters for QTable based agents.
+    
+    Args:
+        study_name: The name of the study
+    """
     tune(
         study_name,
         tabular_q_learning_objective,
