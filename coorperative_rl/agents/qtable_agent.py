@@ -15,10 +15,10 @@ class QTableAgent(BaseAgent):
         agent_id: int,
         agent_type: AgentType,
         qval_matrix: QTable,
-        epsilon_initial: float = 0.9,
-        epsilon_final: float = 0.1,
-        alpha: float = 0.3,
-        discount_rate: float = 0.9,
+        epsilon_initial: float | None = 0.9,
+        epsilon_final: float | None = 0.1,
+        alpha: float | None = 0.3,
+        discount_rate: float | None = 0.9,
     ) -> None:
         super().__init__(agent_id, agent_type)
 
@@ -58,6 +58,9 @@ class QTableAgent(BaseAgent):
         reward: float,
         action: Action,
     ) -> None:
+        if self.discount_rate is None:
+            raise ValueError("discount_rate must be provided when initialization of agent to update model")
+
         qval_difference: float = self.alpha * (
             reward
             + self.discount_rate * np.max(self.qval_matrix.get_state_qvals(moved_state))
@@ -68,6 +71,11 @@ class QTableAgent(BaseAgent):
     def update_hyper_parameters(
         self, current_episode_idx: int, num_total_episodes: int, **kwargs: Any
     ) -> None:
+        if self.epsilon_initial is None or self.epsilon_final is None or self.alpha is None:
+            raise ValueError(
+                "epsilon_initial, epsilon_final, and alpha must be provided to update hyper parameters"
+            )
+        
         # linear epsilon decay
         epsilon = self.epsilon_initial - (
             (self.epsilon_initial - self.epsilon_final)
