@@ -7,7 +7,7 @@ from coorperative_rl.training.qtable_trainers import train_qtable_based_agents
 from coorperative_rl.utils import generate_unique_id, save_checkpoint
 
 
-def qtable_objective(trial: optuna.Trial) -> tuple[float, float, float, float, float]:
+def tabular_q_learning_objective(trial: optuna.Trial) -> tuple[float, float, float, float, float]:
     training_id = generate_unique_id()
     trial.set_user_attr("training_id", training_id)
 
@@ -66,6 +66,6 @@ def tune(study_name: str, objective: Callable, directions: list[str]) -> None:
 def tune_qtable(study_name: str) -> None:
     tune(
         study_name,
-        qtable_objective,
+        tabular_q_learning_objective,
         ["maximize", "minimize", "maximize", "maximize", "minimize"],
     )
