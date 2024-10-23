@@ -36,7 +36,7 @@ class Environment:
 
     def add_agent(self, agent: BaseAgent) -> None:
         self.state.add_agent(agent)
-    
+
     def remove_agent(self, agent: BaseAgent) -> None:
         self.state.agents.remove(agent)
         if agent in self.state.agent_states:
@@ -57,7 +57,9 @@ class Environment:
             raise ValueError("not supported (yet)")
 
         if agent_states is not None and goal_location is not None:
-            self.state.initialize_state_from_values(agent_states, goal_location, **kwargs)
+            self.state.initialize_state_from_values(
+                agent_states, goal_location, **kwargs
+            )
         else:
             self.state.initialize_state_randomly(**kwargs)
 
@@ -178,12 +180,18 @@ class Environment:
                 agent_to_reward[agent] += self.goal_without_key_penalty
 
         return agent_to_reward
-    
+
     def is_done(self) -> bool:
         """
         If at least one agent has reached the goal with the key, the episode is done
         """
-        return any([agent_state.location == self.state.goal_location and agent_state.has_full_key for agent_state in self.state.agent_states.values()])
+        return any(
+            [
+                agent_state.location == self.state.goal_location
+                and agent_state.has_full_key
+                for agent_state in self.state.agent_states.values()
+            ]
+        )
 
     def start_new_step(self) -> None:
         self.prev_step_state = deepcopy(self.state)
@@ -195,7 +203,7 @@ class Environment:
         self.apply_action_to_state(self.state.agent_states[agent], action)
         self.action_taken[agent] = action
         self.visualizer.update()
-        
+
         # if one agent reaches the goal state, don't update anymore,
         # though remaining agents in the current step will still take their actions
         # (because users are not interested in the rest of the episode)
@@ -203,15 +211,25 @@ class Environment:
             self.visualizer.update()
         return self.state.get_observable_state_for_agent(agent)
 
-    def end_step(self) -> tuple[dict[BaseAgent, ObservableState], dict[BaseAgent, ObservableState], dict[BaseAgent, float], bool]:
+    def end_step(
+        self,
+    ) -> tuple[
+        dict[BaseAgent, ObservableState],
+        dict[BaseAgent, ObservableState],
+        dict[BaseAgent, float],
+        bool,
+    ]:
         """
-        
+
         Returns: previous state, current state, rewards, is_done
         """
         rewards = self.get_reward()
         is_done = self.is_done()
         return (
-            {agent: self.prev_step_state.get_observable_state_for_agent(agent) for agent in self.state.agents},
+            {
+                agent: self.prev_step_state.get_observable_state_for_agent(agent)
+                for agent in self.state.agents
+            },
             {
                 agent: self.state.get_observable_state_for_agent(agent)
                 for agent in self.state.agents

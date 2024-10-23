@@ -13,7 +13,9 @@ from coorperative_rl.trackers import select_tracker
 def train_qtable_based_agents(
     grid_size: int = 5,
     num_episodes: int = 300,
-    model_sharing_level: Literal["shared-all", "shared-type", "separate"] = "shared-type",
+    model_sharing_level: Literal[
+        "shared-all", "shared-type", "separate"
+    ] = "shared-type",
     track: bool = True,
     tracker_type: str = "mlflow",
     validation_interval: int | None = 10,
@@ -33,7 +35,7 @@ def train_qtable_based_agents(
     visualize_env_train: bool = True,
 ) -> tuple[tuple[float, float, float, float, float] | None, list[QTable]]:
     # NOTE: currently, this only supports two agents of each type
-    
+
     # NOTE: agents can share the same q-value matrix if the agents are symmetric
     if model_sharing_level == "shared-all":
         shared_model = QTable(n=grid_size)
@@ -44,7 +46,7 @@ def train_qtable_based_agents(
         models = [shared_model_a, shared_model_a, shared_model_b, shared_model_b]
     else:
         models = [QTable(n=grid_size) for _ in range(4)]
-    
+
     agents = [
         QTableAgent(
             agent_id=0,
@@ -101,26 +103,36 @@ def train_qtable_based_agents(
     with tracker:
         for episode_idx in tqdm(range(num_episodes)):
             run_episode(
-                agents, env, is_training=True, kill_episode_after=0.05, env_episode_initialization_params={"has_full_key_prob": initialization_has_full_key_prob}
+                agents,
+                env,
+                is_training=True,
+                kill_episode_after=0.05,
+                env_episode_initialization_params={
+                    "has_full_key_prob": initialization_has_full_key_prob
+                },
             )
 
             if (
                 validation_interval is not None
                 and episode_idx % validation_interval == 0
             ):
-                newest_validation_metrics = validate(agents, env, tracker, validation_index=episode_idx)
+                newest_validation_metrics = validate(
+                    agents, env, tracker, validation_index=episode_idx
+                )
 
             if (
                 visualization_env_validation_interval is not None
                 and episode_idx % visualization_env_validation_interval == 0
             ):
                 visualize_samples(agents, env)
-            
+
             # update epsilon
             for agent in agents:
                 agent.update_hyper_parameters(episode_idx, num_episodes)
-    
+
     if do_final_evaluation:
-        newest_validation_metrics = validate(agents, env, tracker, validation_index=num_episodes)
-    
+        newest_validation_metrics = validate(
+            agents, env, tracker, validation_index=num_episodes
+        )
+
     return newest_validation_metrics, models

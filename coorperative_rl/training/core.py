@@ -85,7 +85,7 @@ def run_episode(
 
         if not is_training:
             continue
-        
+
         for agent in agents:
             agent.update_model(
                 original_state=previous_state[agent],
@@ -149,7 +149,9 @@ def generate_episode_samples_all_agent_pair_locations(
     return episode_samples
 
 
-def generate_episode_samples(grid_size: int, agents: list[BaseAgent], num_samples: int) -> list[EpisodeSampleParams]:
+def generate_episode_samples(
+    grid_size: int, agents: list[BaseAgent], num_samples: int
+) -> list[EpisodeSampleParams]:
     return [
         {
             "agent_states": {
@@ -181,26 +183,34 @@ def generate_full_episode_samples(
     sample_params_raw = itertools.product(
         location_indices,
         location_indices,
-        *[location_indices for _ in range(len(chosen_agents)*2)],  # *2 because each agent has a location pair (x, y)
+        *[
+            location_indices for _ in range(len(chosen_agents) * 2)
+        ],  # *2 because each agent has a location pair (x, y)
     )
 
-    return [
-        EpisodeSampleParams(
-            agent_states={
-                chosen_agent: AgentState(
-                    id=0,
-                    type=chosen_agent.agent_type,
-                    location=agent_location,
-                    has_full_key=False,
-                )
-                for chosen_agent, agent_location in zip(
-                    chosen_agents, batched(sample_param_raw[2:], 2)  # chunk of size 2 because each location is a pair (x, y)
-                )
-            },
-            goal_location=sample_param_raw[:2],  # type: ignore
-        )
-        for sample_param_raw in sample_params_raw
-    ], chosen_agents
+    return (
+        [
+            EpisodeSampleParams(
+                agent_states={
+                    chosen_agent: AgentState(
+                        id=0,
+                        type=chosen_agent.agent_type,
+                        location=agent_location,
+                        has_full_key=False,
+                    )
+                    for chosen_agent, agent_location in zip(
+                        chosen_agents,
+                        batched(
+                            sample_param_raw[2:], 2
+                        ),  # chunk of size 2 because each location is a pair (x, y)
+                    )
+                },
+                goal_location=sample_param_raw[:2],  # type: ignore
+            )
+            for sample_param_raw in sample_params_raw
+        ],
+        chosen_agents,
+    )
 
 
 def validate(
@@ -239,7 +249,7 @@ def validate(
             env.remove_agent(agent)
 
         agents = chosen_agents
-        
+
     elif isinstance(num_samples, int):
         episode_samples = generate_episode_samples(
             grid_size=env.grid_size, agents=agents, num_samples=num_samples
@@ -253,7 +263,9 @@ def validate(
     less_than_15_steps_percentage = 0.0
     average_excess_path_length_sum = 0.0
     num_has_reached_goal = 0
-    for i, episode_sample in enumerate(tqdm(episode_samples, disable=not with_progress_bar)):
+    for i, episode_sample in enumerate(
+        tqdm(episode_samples, disable=not with_progress_bar)
+    ):
         sars_collected, has_reached_goal = run_episode(
             agents,
             env,
@@ -270,10 +282,16 @@ def validate(
         episode_path_length = len(sars_collected)
         average_path_length += episode_path_length / len(episode_samples)
         goal_reached_percentage += has_reached_goal / len(episode_samples)
-        less_than_15_steps_percentage += (has_reached_goal and episode_path_length < 15) / len(episode_samples)
-        optimal_path_length, _ = calculate_optimal_time_estimation(episode_sample["agent_states"], episode_sample["goal_location"])
-        average_excess_path_length_sum += (episode_path_length - optimal_path_length) if has_reached_goal else 0
-    
+        less_than_15_steps_percentage += (
+            has_reached_goal and episode_path_length < 15
+        ) / len(episode_samples)
+        optimal_path_length, _ = calculate_optimal_time_estimation(
+            episode_sample["agent_states"], episode_sample["goal_location"]
+        )
+        average_excess_path_length_sum += (
+            (episode_path_length - optimal_path_length) if has_reached_goal else 0
+        )
+
     # for average excess path length, we only consider the cases where the goal is reached
     average_excess_path_length = average_excess_path_length_sum / num_has_reached_goal
 
@@ -300,7 +318,13 @@ def validate(
             validation_index,
         )
 
-    return average_reward, average_path_length, goal_reached_percentage, less_than_15_steps_percentage, average_excess_path_length
+    return (
+        average_reward,
+        average_path_length,
+        goal_reached_percentage,
+        less_than_15_steps_percentage,
+        average_excess_path_length,
+    )
 
 
 def visualize_samples(
@@ -309,7 +333,14 @@ def visualize_samples(
     env = deepcopy(env)
     env.visualizer.visualize = True
 
-    episode_samples = generate_episode_samples(grid_size=env.grid_size, agents=agents, num_samples=num_visualizations)
+    episode_samples = generate_episode_samples(
+        grid_size=env.grid_size, agents=agents, num_samples=num_visualizations
+    )
 
     for episode_sample in episode_samples:
-        run_episode(agents, env, is_training=False, env_episode_initialization_params=episode_sample)
+        run_episode(
+            agents,
+            env,
+            is_training=False,
+            env_episode_initialization_params=episode_sample,
+        )

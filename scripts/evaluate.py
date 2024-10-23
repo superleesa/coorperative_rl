@@ -75,7 +75,11 @@ def inference(
         env.add_agent(agent)
 
     newest_validation_metrics = validate(
-        agents, env, tracker=None, num_samples=num_samples, with_progress_bar=True,
+        agents,
+        env,
+        tracker=None,
+        num_samples=num_samples,
+        with_progress_bar=True,
     )
     metric_names = [
         "average reward",

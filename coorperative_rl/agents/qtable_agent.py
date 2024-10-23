@@ -59,7 +59,9 @@ class QTableAgent(BaseAgent):
         action: Action,
     ) -> None:
         if self.discount_rate is None:
-            raise ValueError("discount_rate must be provided when initialization of agent to update model")
+            raise ValueError(
+                "discount_rate must be provided when initialization of agent to update model"
+            )
 
         qval_difference: float = self.alpha * (
             reward
@@ -71,11 +73,15 @@ class QTableAgent(BaseAgent):
     def update_hyper_parameters(
         self, current_episode_idx: int, num_total_episodes: int, **kwargs: Any
     ) -> None:
-        if self.epsilon_initial is None or self.epsilon_final is None or self.alpha is None:
+        if (
+            self.epsilon_initial is None
+            or self.epsilon_final is None
+            or self.alpha is None
+        ):
             raise ValueError(
                 "epsilon_initial, epsilon_final, and alpha must be provided to update hyper parameters"
             )
-        
+
         # linear epsilon decay
         epsilon = self.epsilon_initial - (
             (self.epsilon_initial - self.epsilon_final)

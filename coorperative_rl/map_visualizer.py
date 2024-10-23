@@ -10,23 +10,30 @@ if TYPE_CHECKING:
 
 
 class MapVisualizer:
-    def __init__(self, env: Environment, plot_pause_seconds: float | int = 0.7, visualize: bool = True) -> None:
+    def __init__(
+        self,
+        env: Environment,
+        plot_pause_seconds: float | int = 0.7,
+        visualize: bool = True,
+    ) -> None:
         self.visualize = visualize
-        
+
         self.env = env
 
         self.fig, self.ax = None, None
-        
-        self.plot_pause_seconds = plot_pause_seconds  # Pause to allow visualization of the movement
+
+        self.plot_pause_seconds = (
+            plot_pause_seconds  # Pause to allow visualization of the movement
+        )
 
     def update(self) -> None:
         if not self.visualize:
             return
-        
+
         # create figure and axis lazily to avoid showing up on the screen even if visualize is False
         if self.fig is None or self.ax is None:
             self.fig, self.ax = plt.subplots()
-        
+
         self.ax.clear()
 
         self.ax.set_xlim(0, self.env.grid_size)
@@ -39,12 +46,8 @@ class MapVisualizer:
         agent_legends = []
         for agent_state in self.env.state.agent_states.values():
             agent_icon = agent_state.type.name.lstrip("TYPE_") + str(agent_state.id)
-            agent_color = (
-                "red"
-                if agent_state.has_full_key
-                else "black"
-            )
-            
+            agent_color = "red" if agent_state.has_full_key else "black"
+
             # agent location
             self.ax.text(
                 agent_state.location[0] + 0.5,

@@ -31,7 +31,12 @@ def test_calculate_time_in_one_axis(a, b, g, requires_move_around_goal, expected
     ("agent1_location", "agent2_location", "goal_location", "expected_time"),
     [
         ((0, 3), (1, 2), (2, 1), 4),  # both agent in the same quadrant
-        ((0, 3), (0, 0), (2, 1), 4),  # adjacent qudarant (qudrant 2 and 3) => does not require moving around goal
+        (
+            (0, 3),
+            (0, 0),
+            (2, 1),
+            4,
+        ),  # adjacent qudarant (qudrant 2 and 3) => does not require moving around goal
         ((0, 2), (3, 0), (1, 1), 4),  # diagonal quadrant => requires moving around goal
     ],
 )

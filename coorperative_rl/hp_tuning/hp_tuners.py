@@ -17,13 +17,17 @@ def qtable_objective(trial: optuna.Trial) -> tuple[float, float, float, float, f
         visualization_env_validation_interval=None,
         visualize_env_train=False,
         num_episodes=trial.suggest_int("num_episodes", 1000, 20000),
-        alpha=trial.suggest_loguniform("alpha", 0.01, 0.9),  # ensure smaller learing rates are tried more
+        alpha=trial.suggest_loguniform(
+            "alpha", 0.01, 0.9
+        ),  # ensure smaller learing rates are tried more
         discount_rate=trial.suggest_float("discount_rate", 0.7, 0.99),
         epsilon_initial=trial.suggest_float("epsilon_initial", 0.8, 1.0),
         epsilon_final=trial.suggest_float("epsilon_final", 0.01, 0.3),
         goal_state_reward=trial.suggest_int("goal_state", 10, 100),
         key_share_reward=trial.suggest_int("key_share_reward", 5, 100),
-        goal_without_key_penalty=trial.suggest_int("goal_without_key_penalty", -100, -10),
+        goal_without_key_penalty=trial.suggest_int(
+            "goal_without_key_penalty", -100, -10
+        ),
         time_penalty=trial.suggest_int("time_penalty", -20, 0),
         initialization_has_full_key_prob=trial.suggest_float(
             "initialization_has_full_key_prob", 0.0, 1.0
@@ -35,9 +39,11 @@ def qtable_objective(trial: optuna.Trial) -> tuple[float, float, float, float, f
         models,
         training_id,
     )
-    
+
     if computed_metrics is None:
-        raise ValueError("metrics must be calculated at least once within the objective function")
+        raise ValueError(
+            "metrics must be calculated at least once within the objective function"
+        )
 
     return computed_metrics
 
@@ -58,4 +64,8 @@ def tune(study_name: str, objective: Callable, directions: list[str]) -> None:
 
 
 def tune_qtable(study_name: str) -> None:
-    tune(study_name, qtable_objective, ["maximize", "minimize", "maximize", "maximize", "minimize"])
+    tune(
+        study_name,
+        qtable_objective,
+        ["maximize", "minimize", "maximize", "maximize", "minimize"],
+    )

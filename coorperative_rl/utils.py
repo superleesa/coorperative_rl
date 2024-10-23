@@ -114,7 +114,10 @@ def split_dict_by_agent_type(
 
     return type_to_agent_states
 
-def split_agent_list_by_type(agents: list[BaseAgent]) -> dict[AgentType, list[BaseAgent]]:
+
+def split_agent_list_by_type(
+    agents: list[BaseAgent],
+) -> dict[AgentType, list[BaseAgent]]:
     type_to_agents: dict[AgentType, list[BaseAgent]] = {}
     for agent in agents:
         if agent.type not in type_to_agents:
@@ -128,10 +131,11 @@ def load_models(checkpoint_path: str) -> list[Any]:
     with open(checkpoint_path, "rb") as f:
         return pickle.load(f)
 
+
 def batched(iterable, n):
-      # see: https://github.com/python/cpython/issues/98363
-      if n < 1:
-          raise ValueError('n must be >= 1')
-      it = iter(iterable)
-      while (batch := list(itertools.islice(it, n))):
-          yield batch
+    # see: https://github.com/python/cpython/issues/98363
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    it = iter(iterable)
+    while batch := list(itertools.islice(it, n)):
+        yield batch

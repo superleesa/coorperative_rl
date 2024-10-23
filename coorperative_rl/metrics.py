@@ -214,13 +214,13 @@ def calculate_optimal_time_estimation(
         ]
     )
 
-    shortest_time, shortest_time_agent_combination = (
-        _calculate_optimal_time_estimation(_agent_states, goal_location)
+    shortest_time, shortest_time_agent_combination = _calculate_optimal_time_estimation(
+        _agent_states, goal_location
     )
-    
+
     agent_id_to_agent = {agent.id: agent for agent in agent_states.keys()}
     agent_combination = tuple(
         [agent_id_to_agent[agent_id] for agent_id in shortest_time_agent_combination]
     )
-    
+
     return shortest_time, agent_combination

@@ -26,11 +26,12 @@ class AgentState(BaseModel):
 
 class ObservableState(BaseModel):
     """
-    This is the state that agents can observe and handle, 
+    This is the state that agents can observe and handle,
     when decicing thier actions / updating thier models
     """
+
     model_config = ConfigDict(frozen=True)  # disable mutation for simplicity
-    
+
     # we can only use:
     # 1) the agent location itself
     # 2) agent location of the closest opposite type agent (this one from the contract)
@@ -97,9 +98,9 @@ class GlobalState:
         this overwrites the agent states (so don't reference the same agent state across episodes)
 
         Args:
-            allow_overlapping_objects: whether to allow agents / goal to be placed at the same location. 
+            allow_overlapping_objects: whether to allow agents / goal to be placed at the same location.
                 Defaults to False. during training it might be helpful to set this to true for fairer sampling
-            has_full_key_prob: probability of having the full key. Defaults to 0. 
+            has_full_key_prob: probability of having the full key. Defaults to 0.
                 During training it might be helpful to raise this probability to specifically train the paths of agents after key sharing
         """
         selected_locations = []
