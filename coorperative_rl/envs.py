@@ -190,6 +190,12 @@ class Environment:
         self.apply_action_to_state(self.state.agent_states[agent], action)
         self.action_taken[agent] = action
         self.visualizer.update()
+        
+        # if one agent reaches the goal state, don't update anymore,
+        # though remaining agents in the current step will still take their actions
+        # (because users are not interested in the rest of the episode)
+        if not self.is_done():
+            self.visualizer.update()
         return self.state.get_observable_state_for_agent(agent)
 
     def end_step(self) -> tuple[dict[BaseAgent, ObservableState], dict[BaseAgent, ObservableState], dict[BaseAgent, float], bool]:
