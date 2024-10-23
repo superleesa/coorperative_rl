@@ -156,9 +156,9 @@ def train_qtable_based_agents(
             for agent in agents:
                 agent.update_hyper_parameters(episode_idx, num_episodes)
 
-    if do_final_evaluation:
-        newest_validation_metrics = validate(
-            agents, env, tracker, validation_index=num_episodes
-        )
+        if do_final_evaluation:
+            newest_validation_metrics = validate(
+                agents, env, tracker, validation_index=num_episodes
+            )
 
     return newest_validation_metrics, models
