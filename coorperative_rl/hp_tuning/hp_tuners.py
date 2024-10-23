@@ -16,7 +16,7 @@ def qtable_objective(trial: optuna.Trial) -> tuple[float, float, float, float, f
         validation_interval=None,
         visualization_env_validation_interval=None,
         visualize_env_train=False,
-        num_episodes=trial.suggest_int("num_episodes", 500, 3000),
+        num_episodes=trial.suggest_int("num_episodes", 1000, 20000),
         alpha=trial.suggest_loguniform("alpha", 0.01, 0.9),  # ensure smaller learing rates are tried more
         discount_rate=trial.suggest_float("discount_rate", 0.7, 0.99),
         epsilon_initial=trial.suggest_float("epsilon_initial", 0.8, 1.0),
@@ -43,7 +43,7 @@ def qtable_objective(trial: optuna.Trial) -> tuple[float, float, float, float, f
 
 
 def tune(study_name: str, objective: Callable, directions: list[str]) -> None:
-    NUM_TRIALS = 100
+    NUM_TRIALS = 300
 
     study = optuna.create_study(
         directions=directions,
