@@ -100,4 +100,8 @@ class MapVisualizer:
         plt.pause(self.plot_pause_seconds)
 
     def close(self) -> None:
-        plt.close(self.fig)
+        try:
+            plt.close(self.fig)
+        except Exception:
+            # env might have closed this fig already
+            pass

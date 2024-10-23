@@ -344,3 +344,5 @@ def visualize_samples(
             is_training=False,
             env_episode_initialization_params=episode_sample,
         )
+    
+    env.visualizer.close()
