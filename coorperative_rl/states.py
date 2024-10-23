@@ -61,13 +61,13 @@ class GlobalState:
         for other_agent_id, other_agent_state in self.agent_states.items():
             if other_agent_state.type == agent_state.type:
                 continue
-
-            euclidan_distance = (
-                (other_agent_state.location[0] - agent_state.location[0]) ** 2
-                + (other_agent_state.location[1] - agent_state.location[1]) ** 2
-            ) ** (1 / 2)
-            if euclidan_distance < min_distance:
-                min_distance = euclidan_distance
+            
+            manhattan_distance = (
+                abs(other_agent_state.location[0] - agent_state.location[0])
+                + abs(other_agent_state.location[1] - agent_state.location[1])
+            )
+            if manhattan_distance < min_distance:
+                min_distance = manhattan_distance
                 min_distance_agent_id = other_agent_id
 
         if min_distance_agent_id is None:
