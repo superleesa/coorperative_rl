@@ -67,10 +67,6 @@ class MatplotlibPlotTraker(BaseTracker):
         self.axs = flatten_2D_list(axs)
         self.axs_unused = self.axs.copy()  # should point to the same axes
         self.axs_unused.reverse()  # so that we can pop from the end
-
-        plt.show(
-            block=False
-        )  # make this specific figure non-blocking (so that we can update it)
         return self
 
     def __exit__(self, exc_type: type, exc_val: Exception, exc_tb: object) -> None:
@@ -98,7 +94,7 @@ class MatplotlibPlotTraker(BaseTracker):
 
         plt.subplots_adjust(wspace=0.3, hspace=0.6)
         self.fig.canvas.draw_idle()
-        plt.pause(0.001)
+        plt.pause(0.002)
 
 
 class NullTracker(BaseTracker):
