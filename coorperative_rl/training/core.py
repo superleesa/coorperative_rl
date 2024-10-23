@@ -193,7 +193,8 @@ def validate(
     average_path_length = 0.0
     goal_reached_percentage = 0.0
     less_than_15_steps_percentage = 0.0
-    average_excess_path_length = 0.0
+    average_excess_path_length_sum = 0.0
+    num_has_reached_goal = 0
     for i, episode_sample in enumerate(episode_samples):
         sars_collected, has_reached_goal = run_episode(
             agents,
@@ -202,6 +203,7 @@ def validate(
             env_episode_initialization_params=episode_sample,
             kill_episode_after=0.01,
         )
+        num_has_reached_goal += has_reached_goal
 
         episode_wise_average_reward = sum(
             [sum(sars[2].values()) for sars in sars_collected]
@@ -212,7 +214,10 @@ def validate(
         goal_reached_percentage += has_reached_goal / len(episode_samples)
         less_than_15_steps_percentage += (has_reached_goal and episode_path_length < 15) / len(episode_samples)
         optimal_path_length, _ = calculate_optimal_time_estimation(episode_sample["agent_states"], episode_sample["goal_location"])
-        average_excess_path_length += (episode_path_length - optimal_path_length) / len(episode_samples)
+        average_excess_path_length_sum += (episode_path_length - optimal_path_length) if has_reached_goal else 0
+    
+    # for average excess path length, we only consider the cases where the goal is reached
+    average_excess_path_length = average_excess_path_length_sum / num_has_reached_goal
 
     if tracker is not None and validation_index is not None:
         tracker.log_metric(
