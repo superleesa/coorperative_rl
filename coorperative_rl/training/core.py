@@ -1,7 +1,8 @@
 import itertools
+import random
 import time
 from copy import deepcopy
-from typing import Sequence, TypeAlias, TypedDict
+from typing import Sequence, TypeAlias, TypedDict, Literal
 
 from tqdm import tqdm
 
@@ -12,9 +13,11 @@ from coorperative_rl.states import ObservableState, AgentState
 from coorperative_rl.metrics import calculate_optimal_time_estimation
 
 from coorperative_rl.utils import (
+    batched,
     generate_grid_location_list,
     generate_random_location,
     shuffle_and_distribute_agents,
+    split_agent_list_by_type,
 )
 from coorperative_rl.trackers import BaseTracker
 
@@ -164,11 +167,47 @@ def generate_episode_samples(grid_size: int, agents: list[BaseAgent], num_sample
     ]
 
 
+def generate_full_episode_samples(
+    grid_size: int, agents: list[BaseAgent]
+) -> tuple[list[EpisodeSampleParams], list[BaseAgent]]:
+    location_indices = [location for location in range(grid_size)]
+
+    # pick one agent from each type (we don't need all agents because the game is symmetric)
+    chosen_agents = [
+        random.choice(agents_of_type)
+        for agents_of_type in split_agent_list_by_type(agents).values()
+    ]
+
+    sample_params_raw = itertools.product(
+        location_indices,
+        location_indices,
+        *[location_indices for _ in range(len(chosen_agents)*2)],  # *2 because each agent has a location pair (x, y)
+    )
+
+    return [
+        EpisodeSampleParams(
+            agent_states={
+                chosen_agent: AgentState(
+                    id=0,
+                    type=chosen_agent.agent_type,
+                    location=agent_location,
+                    has_full_key=False,
+                )
+                for chosen_agent, agent_location in zip(
+                    chosen_agents, batched(sample_param_raw[2:], 2)  # chunk of size 2 because each location is a pair (x, y)
+                )
+            },
+            goal_location=sample_param_raw[:2],  # type: ignore
+        )
+        for sample_param_raw in sample_params_raw
+    ], chosen_agents
+
+
 def validate(
     agents: Sequence[BaseAgent],
     env: Environment,
     tracker: BaseTracker | None,
-    num_samples: int = 1000,
+    num_samples: int | Literal["all"] = 1000,
     validation_index: int | None = None,
     with_progress_bar: bool = False,
 ) -> tuple[float, float, float, float, float]:
@@ -176,21 +215,37 @@ def validate(
     FIXME: maybe we need support more statistics
     This assumes that there is no difference in models between agents with the same type (to reduce number of possible start states).
     # TODO: implement sampling functinality
-    
+
     Args:
         agents: A list of agents participating in the episode.
         env: The environment in which the episode takes place.
         tracker: A tracker to log the metrics.
-        num_samples: Number of samples to generate for validation. Defaults to 1000.
+        num_samples: Number of samples to generate for validation. Defaults to 1000. Set to "all" to validate on all possible environments (this will take a huge amount of time for larger env).
         validation_index: The index of the validation. Defaults to None.
-        
+
     Returns: A tuple containing the average reward, average path length, goal reached percentage, less than 15 steps percentage, and average excess path length.
     """
     if tracker and validation_index is None:
         raise ValueError("validation_index must be provided when tracker is provided")
 
     env = deepcopy(env)
-    episode_samples = generate_episode_samples(grid_size=env.grid_size, agents=agents, num_samples=num_samples)  # 1/3 of the total possible states
+    if num_samples == "all":
+        episode_samples, chosen_agents = generate_full_episode_samples(
+            grid_size=env.grid_size, agents=agents
+        )
+        # remove agents that are not used within the samples
+        unused_agents = [agent for agent in agents if agent not in chosen_agents]
+        for agent in unused_agents:
+            env.remove_agent(agent)
+
+        agents = chosen_agents
+        
+    elif isinstance(num_samples, int):
+        episode_samples = generate_episode_samples(
+            grid_size=env.grid_size, agents=agents, num_samples=num_samples
+        )  # 1/3 of the total possible states
+    else:
+        raise ValueError("num_samples must be an integer or 'all'")
 
     average_reward = 0.0
     average_path_length = 0.0

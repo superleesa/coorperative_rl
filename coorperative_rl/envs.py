@@ -36,6 +36,11 @@ class Environment:
 
     def add_agent(self, agent: BaseAgent) -> None:
         self.state.add_agent(agent)
+    
+    def remove_agent(self, agent: BaseAgent) -> None:
+        self.state.agents.remove(agent)
+        if agent in self.state.agent_states:
+            del self.state.agent_states[agent]
 
     def initialize_for_new_episode(
         self,

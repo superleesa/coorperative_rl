@@ -1,3 +1,5 @@
+from typing import Literal
+
 import fire
 
 from coorperative_rl.agents.qtable_agent import QTableAgent
@@ -10,7 +12,7 @@ from coorperative_rl.utils import load_models
 # use same params as traiing
 def inference(
     model_checkpoint_path: str,
-    num_samples: int = 1000,
+    num_samples: int | Literal["all"] = 1000,
     grid_size: int = 5,
     # env params
     goal_state_reward: int | float = 50,
