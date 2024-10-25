@@ -10,7 +10,7 @@ from coorperative_rl.utils import load_models
 
 
 # use same params as traiing
-def inference(
+def evaluate(
     model_checkpoint_path: str,
     num_samples: int | Literal["all"] = 1000,
     grid_size: int = 5,
@@ -95,4 +95,4 @@ def inference(
 
 
 if __name__ == "__main__":
-    fire.Fire(inference)
+    fire.Fire(evaluate)
