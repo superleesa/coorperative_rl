@@ -95,7 +95,7 @@ class MapVisualizer:
             loc="center left",
             bbox_to_anchor=(1, 0.5),
         )
-        plt.subplots_adjust(right=0.75, left=0.1)
+        self.fig.subplots_adjust(right=0.75, left=0.1)
         self.fig.canvas.draw_idle()
         plt.pause(self.plot_pause_seconds)
 

@@ -92,7 +92,7 @@ class MatplotlibPlotTraker(BaseTracker):
         
         self.fig.suptitle("Validation Metrics", fontsize=14)
 
-        plt.subplots_adjust(wspace=0.3, hspace=0.6)
+        self.fig.subplots_adjust(wspace=0.3, hspace=0.6)
         self.fig.canvas.draw_idle()
         plt.pause(0.002)
 
