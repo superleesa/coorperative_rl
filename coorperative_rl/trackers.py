@@ -1,26 +1,37 @@
 import warnings
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Self
 
+import jsonlines
 import matplotlib.pyplot as plt
 import mlflow
 from mlflow.tracking.fluent import ActiveRun
 
 from coorperative_rl.utils import flatten_2D_list
+from coorperative_rl.types import SARS, serialize_sars
 
 
 class BaseTracker(ABC):
+    def can_log_sars(self) -> bool:
+        return False
+    
     @abstractmethod
     def __enter__(self) -> Self:
         raise NotImplementedError
 
     @abstractmethod
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: type, exc_val: Exception, exc_tb: object) -> None:
         raise NotImplementedError
 
     @abstractmethod
     def log_metric(self, key: str, value: float, step: int) -> None:
         raise NotImplementedError
+    
+    def log_sars(self, sars_list: list[SARS], step: int) -> None:
+        if self.can_log_sars():
+            raise NotImplementedError
+        raise ValueError("This tracker does not support logging SARS")
 
 
 class MLFlowTracker(BaseTracker):
@@ -97,6 +108,37 @@ class MatplotlibPlotTraker(BaseTracker):
         plt.pause(0.002)
 
 
+class JSONLinesTracker(BaseTracker):
+    JSONLinesDataPath = "jsonlines_logs"
+    def __init__(self) -> None:
+        # createa a log file
+        path = Path(self.JSONLinesDataPath)
+        path.mkdir(parents=True, exist_ok=True)
+        log_files = [file.name for file in path.glob("*.jsonl") if file.name.startswith("log")]
+        if log_files:
+            self.file_path = f"{self.JSONLinesDataPath}/log_{len(log_files)}.jsonl"
+        else:
+            self.file_path = f"{self.JSONLinesDataPath}/log_0.jsonl"
+    
+    def __enter__(self) -> Self:
+        return self
+    
+    def __exit__(self, exc_type: type, exc_val: Exception, exc_tb: object) -> None:
+        return
+    
+    def log_metric(self, key: str, value: float, step: int) -> None:
+        with jsonlines.open(self.file_path, mode='a') as writer:
+            writer.write({"metric": key, "value": value, "step": step})
+    
+    def can_log_sars(self) -> bool:
+        return True
+
+    def log_sars(self, sars_list: list[SARS], step: int) -> None:
+        # stringified_sars = base64.b64encode(pickle.dumps(sars)).decode('utf8')
+        with jsonlines.open(self.file_path, mode='a') as writer:
+            writer.write({"metric": "sars", "value": [serialize_sars(sars) for sars in sars_list], "step": step})
+
+
 class NullTracker(BaseTracker):
     "A tracker, when tracking is set to False"
 
@@ -118,6 +160,8 @@ def select_tracker(tracking: bool, tracker_type: str = "mlflow") -> BaseTracker:
         return NullTracker()
     if tracker_type == "mlflow":
         return MLFlowTracker()
-    if tracker_type == "matplotlib":
+    elif tracker_type == "matplotlib":
         return MatplotlibPlotTraker()
+    elif tracker_type == "jsonlines":
+        return JSONLinesTracker()
     raise ValueError(f"Unknown tracker type: {tracker_type}")

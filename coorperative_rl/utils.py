@@ -3,11 +3,14 @@ from __future__ import annotations
 import itertools
 import pickle
 from pathlib import Path
-from typing import Any, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 
 import datetime
+import jsonlines
 import random
-from typing import TYPE_CHECKING
+import pandas as pd
+
+from coorperative_rl.types import deserialize_sars
 
 if TYPE_CHECKING:
     from coorperative_rl.agents.base import BaseAgent
@@ -139,3 +142,21 @@ def batched(iterable, n):
     it = iter(iterable)
     while batch := list(itertools.islice(it, n)):
         yield batch
+
+
+def log_to_df(log_path: str) -> pd.DataFrame:
+    records: dict[int, dict[str, Any]] = {}
+
+    with jsonlines.open(log_path) as reader:
+        for record in reader:
+            records[record["step"]] = records.get(record["step"], {})
+
+            metric_name = record["metric"]
+            if metric_name == "sars":
+                records[record["step"]]["sars"] = [
+                    deserialize_sars(sars) for sars in record["value"]
+                ]
+            else:
+                records[record["step"]][metric_name] = record["value"]
+
+    return pd.DataFrame.from_dict(records, orient="index")

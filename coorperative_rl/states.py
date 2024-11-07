@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from coorperative_rl.agents.base import BaseAgent
 
 
-class AgentType(Enum):
+class AgentType(int, Enum):
     TYPE_A = 0
     TYPE_B = 1
 

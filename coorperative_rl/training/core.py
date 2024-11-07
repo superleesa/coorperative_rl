@@ -20,20 +20,7 @@ from coorperative_rl.utils import (
     split_agent_list_by_type,
 )
 from coorperative_rl.trackers import BaseTracker
-
-
-# TODO: port these types somewhere else
-SARS: TypeAlias = tuple[
-    dict[BaseAgent, ObservableState],
-    dict[BaseAgent, Action],
-    dict[BaseAgent, float],
-    dict[BaseAgent, ObservableState],
-]
-
-
-class EpisodeSampleParams(TypedDict):
-    agent_states: dict[BaseAgent, AgentState]
-    goal_location: tuple[int, int]
+from coorperative_rl.types import EpisodeSampleParams, SARS
 
 
 def run_episode(
@@ -250,6 +237,7 @@ def validate(
     num_samples: int | Literal["all"] = 1000,
     validation_index: int | None = None,
     with_progress_bar: bool = False,
+    episode_wise_logger: BaseTracker |  None = None,
 ) -> tuple[float, float, float, float, float]:
     """
     Validate the performance of agents in a given environment.
@@ -257,10 +245,11 @@ def validate(
     Args:
         agents: A list of agents participating in the episode.
         env: The environment in which the episode takes place.
-        tracker: A tracker to log the metrics. If provided, `validation_index` must also be provided.
+        tracker: A tracker to log the metrics. (This is to log the average metric values only once. If you want to log for each validation sample, use `episode_wise_logger`) If provided, `validation_index` must also be provided.
         num_samples: Number of samples to generate for validation. Defaults to 1000. Set to "all" to validate on all possible environments (this will take a huge amount of time for larger environments).
         validation_index: The index of the validation. Used for logging. Defaults to None.
         with_progress_bar: Whether to display a progress bar during validation. Defaults to False.
+        episode_wise_logger: A tracker to log episode-wise metrics. Defaults to None.
     
     Returns:
         tuple:
@@ -298,7 +287,7 @@ def validate(
     less_than_15_steps_percentage = 0.0
     average_excess_path_length_sum = 0.0
     num_has_reached_goal = 0
-    for i, episode_sample in enumerate(
+    for sample_episode_idx, episode_sample in enumerate(
         tqdm(episode_samples, disable=not with_progress_bar)
     ):
         sars_collected, has_reached_goal = run_episode(
@@ -308,24 +297,40 @@ def validate(
             env_episode_initialization_params=episode_sample,
             kill_episode_after=0.01,
         )
-        num_has_reached_goal += has_reached_goal
+        episode_path_length = len(sars_collected)
 
         episode_wise_average_reward = sum(
             [sum(sars[2].values()) for sars in sars_collected]
         ) / len(agents)
+        optimal_path_length, _ = calculate_optimal_time_estimation(
+            episode_sample["agent_states"], episode_sample["goal_location"]
+        )
+        episode_wise_excess_path_length = (episode_path_length - optimal_path_length) if has_reached_goal else 0
+        
+        if episode_wise_logger is not None:
+            episode_wise_logger.log_metric(
+                "episode_reward", episode_wise_average_reward, sample_episode_idx
+            )
+            episode_wise_logger.log_metric(
+                "episode_path_length", episode_path_length, sample_episode_idx
+            )
+            episode_wise_logger.log_metric(
+                "episode_has_reaced_goal", has_reached_goal, sample_episode_idx
+            )
+            episode_wise_logger.log_metric(
+                "episode_excess_path_length", episode_wise_excess_path_length, sample_episode_idx
+            )
+            if episode_wise_logger.can_log_sars():
+                episode_wise_logger.log_sars(sars_collected, sample_episode_idx)
+        
+        num_has_reached_goal += has_reached_goal
         average_reward += episode_wise_average_reward / len(episode_samples)
-        episode_path_length = len(sars_collected)
         average_path_length += episode_path_length / len(episode_samples)
         goal_reached_percentage += has_reached_goal / len(episode_samples)
         less_than_15_steps_percentage += (
             has_reached_goal and episode_path_length < 15
         ) / len(episode_samples)
-        optimal_path_length, _ = calculate_optimal_time_estimation(
-            episode_sample["agent_states"], episode_sample["goal_location"]
-        )
-        average_excess_path_length_sum += (
-            (episode_path_length - optimal_path_length) if has_reached_goal else 0
-        )
+        average_excess_path_length_sum += episode_wise_excess_path_length
 
     # for average excess path length, we only consider the cases where the goal is reached
     average_excess_path_length = average_excess_path_length_sum / num_has_reached_goal
