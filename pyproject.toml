@@ -28,3 +28,4 @@ ipykernel = "^6.29.5"
 optuna-dashboard = "^0.16.2"
 
 pydantic = "^2.9.2"
+jsonlines = "^4.0.0"
