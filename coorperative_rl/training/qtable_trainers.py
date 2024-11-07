@@ -16,6 +16,7 @@ def train_qtable_based_agents(
     model_sharing_level: Literal[
         "shared-all", "shared-type", "separate"
     ] = "shared-type",
+    use_central_clock: bool = True,
     track: bool = True,
     tracker_backend: str = "mlflow",
     validation_interval: int | None = 10,
@@ -41,6 +42,8 @@ def train_qtable_based_agents(
         grid_size: The size of the grid world
         num_episodes: The number of episodes to train the agents
         model_sharing_level: The level of sharing the Q-value matrix between agents. Options are "shared-all", "shared-type", and "separate".
+        use_central_clock: Flag indicating whether to use a central clock for the agents. Defaults to True.
+        off_the_job_training: Flag indicating whether to use off-the-job training. Defaults to False. Note that if this is set to True, number of episodes will be ignored.
         track: Flag indicating whether to track the training process. Defaults to True.
         tracker_backend: The type of tracker to use. Defaults to "mlflow".
         validation_interval: The interval at which to validate the agents. Defaults to 10.
@@ -132,6 +135,7 @@ def train_qtable_based_agents(
                 agents,
                 env,
                 is_training=True,
+                use_central_clock=use_central_clock,
                 kill_episode_after=0.05,
                 env_episode_initialization_params={
                     "has_full_key_prob": initialization_has_full_key_prob
@@ -143,7 +147,11 @@ def train_qtable_based_agents(
                 and episode_idx % validation_interval == 0
             ):
                 newest_validation_metrics = validate(
-                    agents, env, tracker, validation_index=episode_idx
+                    agents,
+                    env,
+                    tracker,
+                    use_central_clock=use_central_clock,
+                    validation_index=episode_idx,
                 )
 
             if (
@@ -158,7 +166,11 @@ def train_qtable_based_agents(
 
         if do_final_evaluation:
             newest_validation_metrics = validate(
-                agents, env, tracker, validation_index=num_episodes
+                agents,
+                env,
+                tracker,
+                use_central_clock=use_central_clock,
+                validation_index=num_episodes,
             )
 
     return newest_validation_metrics, models

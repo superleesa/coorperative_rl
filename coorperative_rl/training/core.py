@@ -2,14 +2,13 @@ import itertools
 import random
 import time
 from copy import deepcopy
-from typing import Sequence, TypeAlias, TypedDict, Literal
+from typing import Sequence, Literal
 
 from tqdm import tqdm
 
-from coorperative_rl.actions import Action
 from coorperative_rl.envs import Environment
 from coorperative_rl.agents.base import BaseAgent
-from coorperative_rl.states import ObservableState, AgentState
+from coorperative_rl.states import AgentState
 from coorperative_rl.metrics import calculate_optimal_time_estimation
 
 from coorperative_rl.utils import (
@@ -27,6 +26,7 @@ def run_episode(
     agents: Sequence[BaseAgent],
     env: Environment,
     is_training: bool,
+    use_central_clock: bool = True,
     kill_episode_after: float | int = 10,
     env_episode_initialization_params: EpisodeSampleParams | dict | None = None,
 ) -> tuple[list[SARS], bool]:
@@ -37,6 +37,7 @@ def run_episode(
         agents: A list of agents participating in the episode.
         env: The environment in which the episode takes place.
         is_training: A flag indicating whether the episode is for training purposes. It won't update agent model states if set to False.
+        use_central_clock: A flag indicating whether to use a central clock for the episode (i.e. train agents in order or randomly). Defaults to True.
         kill_episode_after: Maximum duration (in seconds) for the episode. Defaults to 10.
         env_episode_initialization_params: Parameters for initializing the environment for the episode. Defaults to None.
 
@@ -64,6 +65,9 @@ def run_episode(
 
         env.start_new_step()
 
+        if not use_central_clock:
+            agents = random.sample(agents, len(agents))
+        
         for agent in agents:
             action = agent.decide_action(
                 possible_actions=env.get_available_actions(agent),
@@ -235,6 +239,7 @@ def validate(
     env: Environment,
     tracker: BaseTracker | None,
     num_samples: int | Literal["all"] = 1000,
+    use_central_clock: bool = True,
     validation_index: int | None = None,
     with_progress_bar: bool = False,
     episode_wise_logger: BaseTracker |  None = None,
@@ -247,6 +252,7 @@ def validate(
         env: The environment in which the episode takes place.
         tracker: A tracker to log the metrics. (This is to log the average metric values only once. If you want to log for each validation sample, use `episode_wise_logger`) If provided, `validation_index` must also be provided.
         num_samples: Number of samples to generate for validation. Defaults to 1000. Set to "all" to validate on all possible environments (this will take a huge amount of time for larger environments).
+        use_central_clock: A flag indicating whether to use a central clock for the episode (i.e. train agents in order or randomly). Defaults to True.
         validation_index: The index of the validation. Used for logging. Defaults to None.
         with_progress_bar: Whether to display a progress bar during validation. Defaults to False.
         episode_wise_logger: A tracker to log episode-wise metrics. Defaults to None.
@@ -294,6 +300,7 @@ def validate(
             agents,
             env,
             is_training=False,
+            use_central_clock=use_central_clock,
             env_episode_initialization_params=episode_sample,
             kill_episode_after=0.01,
         )
