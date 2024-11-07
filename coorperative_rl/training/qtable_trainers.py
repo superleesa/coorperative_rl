@@ -6,7 +6,7 @@ from coorperative_rl.agents.qtable_agent import QTableAgent
 from coorperative_rl.envs import Environment
 from coorperative_rl.states import AgentType
 from coorperative_rl.agents.qtable import QTable
-from coorperative_rl.training.core import run_episode, validate, visualize_samples
+from coorperative_rl.training.core import CoordinatedEnvParameterIterator, CoordinatedGoalLocationIterator, EmptyParamIterator, run_episode, validate, visualize_samples
 from coorperative_rl.trackers import select_tracker
 
 
@@ -17,6 +17,7 @@ def train_qtable_based_agents(
         "shared-all", "shared-type", "separate"
     ] = "shared-type",
     use_central_clock: bool = True,
+    off_the_job_training: bool = False,
     track: bool = True,
     tracker_backend: str = "mlflow",
     validation_interval: int | None = 10,
@@ -37,7 +38,7 @@ def train_qtable_based_agents(
 ) -> tuple[tuple[float, float, float, float, float] | None, list[QTable]]:
     """
     A tabular Q-learning trainer for cooperative agents.
-    
+
     Args:
         grid_size: The size of the grid world
         num_episodes: The number of episodes to train the agents
@@ -59,7 +60,7 @@ def train_qtable_based_agents(
         time_penalty: The penalty for each time step. Defaults to -1.
         initialization_has_full_key_prob: The probability of having the full key at the start of the episode. Defaults to 0.0.
         visualize_env_train: Flag indicating whether to visualize the environment during training. Defaults to True.
-    
+
     Returns:
         The validation metrics (see validate function) and the Q-value matrix models.
     """
@@ -117,6 +118,12 @@ def train_qtable_based_agents(
 
     tracker = select_tracker(track, tracker_backend)
 
+    env_param_iterator: CoordinatedEnvParameterIterator
+    if off_the_job_training:
+        env_param_iterator = CoordinatedGoalLocationIterator(grid_size=grid_size)  # TODO: parametrize `num_episodes_per_combination`
+    else:
+        env_param_iterator = EmptyParamIterator(num_episodes)
+
     env = Environment(
         grid_size=grid_size,
         visualize=visualize_env_train,
@@ -130,7 +137,7 @@ def train_qtable_based_agents(
 
     newest_validation_metrics = None
     with tracker:
-        for episode_idx in tqdm(range(num_episodes)):
+        for episode_idx, env_params in tqdm(zip(range(num_episodes), env_param_iterator), total=min(num_episodes, len(env_param_iterator))):
             run_episode(
                 agents,
                 env,
@@ -138,7 +145,8 @@ def train_qtable_based_agents(
                 use_central_clock=use_central_clock,
                 kill_episode_after=0.05,
                 env_episode_initialization_params={
-                    "has_full_key_prob": initialization_has_full_key_prob
+                    "has_full_key_prob": initialization_has_full_key_prob,
+                    **env_params,
                 },
             )
 

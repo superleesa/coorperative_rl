@@ -82,9 +82,7 @@ class Environment:
             **kwargs: Additional keyword arguments passed to the state initialization function.
         """
         if (
-            agent_states is None
-            and goal_location is not None
-            or agent_states is not None
+            agent_states is not None
             and goal_location is None
         ):
             raise ValueError("not supported (yet)")
@@ -94,7 +92,7 @@ class Environment:
                 agent_states, goal_location, **kwargs
             )
         else:
-            self.state.initialize_state_randomly(**kwargs)
+            self.state.initialize_state_randomly(fixed_goal_location=goal_location, **kwargs)
 
     def get_available_actions(self, agent: BaseAgent) -> list[Action]:
         """

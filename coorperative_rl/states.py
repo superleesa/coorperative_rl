@@ -101,9 +101,11 @@ class GlobalState:
         self.agents.add(agent)
 
     def initialize_state_randomly(
-        self, allow_overlapping_objects: bool = False, has_full_key_prob: float = 0.0
+        self, allow_overlapping_objects: bool = False, has_full_key_prob: float = 0.0, fixed_goal_location: tuple[int, int] | None = None
     ) -> None:
         """
+        TODO: ensure we can specify which parameters to randomize and which to fix
+        
         this overwrites the agent states (so don't reference the same agent state across episodes)
 
         Args:
@@ -122,7 +124,7 @@ class GlobalState:
             )
             selected_locations.append(location)
 
-        self.goal_location = selected_locations.pop()
+        self.goal_location = fixed_goal_location or selected_locations.pop()
 
         for agent in self.agents:
             agent_state = AgentState(

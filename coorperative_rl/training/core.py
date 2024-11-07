@@ -401,3 +401,59 @@ def visualize_samples(
         )
     
     env.visualizer.close()
+
+
+class CoordinatedEnvParameterIterator:
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> dict:
+        raise NotImplementedError
+    
+    def __len__(self) -> int:
+        raise NotImplementedError
+
+
+class EmptyParamIterator(CoordinatedEnvParameterIterator):
+    def __init__(self, max_iterations: int) -> None:
+        self.max_iterations = max_iterations
+        self.current_iteration = 0
+
+    def __next__(self) -> dict:
+        if self.current_iteration >= self.max_iterations:
+            raise StopIteration
+        
+        self.current_iteration += 1
+        return {}
+    
+    def __len__(self) -> int:
+        return self.max_iterations
+
+
+class CoordinatedGoalLocationIterator(CoordinatedEnvParameterIterator):
+    def __init__(self, grid_size: int = 5, num_episodes_per_combination: int = 800, num_cycles: int = 5) -> None:
+        """
+        Args:
+            grid_size (int): The size of the grid (e.g., 5 for a 5x5 grid).
+            num_episodes_per_combination (int): The number of episodes to run for each goal location combination. Defaults to 800.
+            num_cycles (int): If num_cycles > 1, the iterator will cycle through goal locations step-by-step, rather than exhausting one goal location before moving to the next. This can help in reducing catastrophic forgetting. Defaults to 5.
+        """
+        self.num_episodes_per_combination = num_episodes_per_combination
+        self.current_episode_index = -1
+        self.current_goal_combination_index = -1
+        
+        self.all_goal_locations = list(itertools.product([x for x in range(grid_size)], [y for y in range(grid_size)]))
+        self.num_episodes_per_cycle = num_episodes_per_combination // num_cycles
+    
+    def __next__(self) -> dict:
+        if self.current_episode_index >= self.num_episodes_per_combination * len(self.all_goal_locations):
+            raise StopIteration
+        
+        if self.current_episode_index % self.num_episodes_per_cycle == 0:
+            self.current_goal_combination_index = (self.current_goal_combination_index + 1) % len(self.all_goal_locations)
+            
+        self.current_episode_index += 1
+        return  {"goal_location": self.all_goal_locations[self.current_goal_combination_index]}
+
+    def __len__(self) -> int:
+        return self.num_episodes_per_combination * len(self.all_goal_locations)
